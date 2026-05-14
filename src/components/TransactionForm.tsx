@@ -1,0 +1,164 @@
+import React, { useState } from 'react';
+import { collection, doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { db, auth } from '@/src/lib/firebase';
+import { cn } from '@/src/lib/utils';
+import { Plus, X } from 'lucide-react';
+
+enum OperationType {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  LIST = 'list',
+  GET = 'get',
+  WRITE = 'write',
+}
+
+interface TransactionFormProps {
+  onClose: () => void;
+  customCategories?: { income: string[], expense: string[] };
+  communityId?: string | null;
+}
+
+export default function TransactionForm({ onClose, customCategories, communityId }: TransactionFormProps) {
+  const categories = customCategories || {
+    income: ['Iuran Bulanan', 'Donasi', 'Bunga Bank', 'Lainnya'],
+    expense: ['Kebersihan', 'Keamanan', 'Listrik & Air', 'Perbaikan', 'Acara RT', 'Lainnya'],
+  };
+  const [type, setType] = useState<'income' | 'expense'>('income');
+  const [amount, setAmount] = useState('');
+  const [category, setCategory] = useState(categories.income[0]);
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [description, setDescription] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!auth.currentUser) return;
+
+    setLoading(true);
+    const path = 'transactions';
+    try {
+      const transactionId = crypto.randomUUID();
+      const transactionData = {
+        amount: Number(amount),
+        type,
+        category,
+        description,
+        date: new Date(date).toISOString(),
+        userId: auth.currentUser.uid,
+        communityId: communityId || null,
+        createdAt: serverTimestamp(),
+      };
+
+      await setDoc(doc(db, path, transactionId), transactionData);
+      onClose();
+    } catch (error) {
+      const errInfo = {
+        error: error instanceof Error ? error.message : String(error),
+        authInfo: { userId: auth.currentUser?.uid },
+        operationType: OperationType.WRITE,
+        path,
+      };
+      console.error('Firestore Error: ', JSON.stringify(errInfo));
+      alert('Gagal menyimpan transaksi. Pastikan data benar.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+        <div className="p-6 flex justify-between items-center border-bottom border-gray-100">
+          <h2 className="text-xl font-bold text-gray-900">Catat Transaksi</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <X size={24} />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div className="flex p-1 bg-gray-100 rounded-lg">
+            <button
+              type="button"
+              onClick={() => { setType('income'); setCategory(categories.income[0]); }}
+              className={cn(
+                "flex-1 py-2 text-sm font-medium rounded-md transition-all",
+                type === 'income' ? "bg-white text-green-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
+              )}
+            >
+              Pemasukan
+            </button>
+            <button
+              type="button"
+              onClick={() => { setType('expense'); setCategory(categories.expense[0]); }}
+              className={cn(
+                "flex-1 py-2 text-sm font-medium rounded-md transition-all",
+                type === 'expense' ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
+              )}
+            >
+              Pengeluaran
+            </button>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Nominal (Rp)</label>
+            <input
+              type="number"
+              required
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              placeholder="0"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+            >
+              {categories[type].map(cat => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Tanggal</label>
+            <input
+              type="date"
+              required
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Keterangan</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Misal: Iuran bulanan Bp. Ahmad"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all resize-none h-20"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className={cn(
+              "w-full py-3 rounded-xl font-bold text-white transition-all shadow-lg active:scale-[0.98]",
+              type === 'income' ? "bg-green-600 hover:bg-green-700 shadow-green-200" : "bg-red-600 hover:bg-red-700 shadow-red-200",
+              loading && "opacity-50 cursor-not-allowed"
+            )}
+          >
+            {loading ? 'Menyimpan...' : 'Simpan Transaksi'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}

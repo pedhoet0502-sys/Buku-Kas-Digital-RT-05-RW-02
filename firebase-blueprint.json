@@ -1,0 +1,65 @@
+{
+  "entities": {
+    "Transaction": {
+      "title": "Transaction",
+      "description": "A financial transaction record representing income or expense.",
+      "type": "object",
+      "properties": {
+        "amount": { "type": "number", "description": "The amount of the transaction." },
+        "type": { "type": "string", "enum": ["income", "expense"], "description": "Whether it is income or expense." },
+        "category": { "type": "string", "description": "The transaction category (e.g., Iuran, Listrik)." },
+        "description": { "type": "string", "description": "Short details about the transaction." },
+        "date": { "type": "string", "format": "date-time", "description": "The date of the transaction." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server creation timestamp." },
+        "userId": { "type": "string", "description": "UID of the user who created this." },
+        "communityId": { "type": "string", "description": "ID of the community this transaction belongs to (for sharing)." }
+      },
+      "required": ["amount", "type", "category", "date", "userId", "createdAt"]
+    },
+    "Community": {
+      "title": "Community",
+      "description": "A group representing an RT or organization for sharing data.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "roles": { 
+          "type": "object", 
+          "description": "Mapping of userId to their role (admin or viewer)." 
+        }
+      },
+      "required": ["name", "roles"]
+    },
+    "UserSettings": {
+      "title": "User Settings",
+      "description": "User specific configurations like notification preferences and custom categories.",
+      "type": "object",
+      "properties": {
+        "notificationsEnabled": { "type": "boolean", "description": "Whether the user wants to receive notifications." },
+        "fcmToken": { "type": "string", "description": "The FCM token for push notifications (optional)." },
+        "communityId": { "type": "string", "description": "Joined community ID for shared data." },
+        "categories": {
+          "type": "object",
+          "properties": {
+            "income": { "type": "array", "items": { "type": "string" } },
+            "expense": { "type": "array", "items": { "type": "string" } }
+          }
+        }
+      },
+      "required": ["notificationsEnabled"]
+    }
+  },
+  "firestore": {
+    "transactions": {
+      "schema": "Transaction",
+      "description": "Collection of all RT cash transactions."
+    },
+    "settings": {
+      "schema": "UserSettings",
+      "description": "User settings stored by UID."
+    },
+    "communities": {
+      "schema": "Community",
+      "description": "Collection of communities and their membership roles."
+    }
+  }
+}
