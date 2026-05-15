@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, deleteField } from 'firebase/firestore';
 import { db, auth } from '@/src/lib/firebase';
-import { Bell, Shield, Smartphone, ArrowLeft, Tag, Plus, X, Edit2, Check } from 'lucide-react';
+import { handleFirestoreError, OperationType } from '@/src/lib/firestoreErrorHandler';
+import { Bell, Shield, User as UserIcon, ArrowLeft, Tag, Plus, X, Edit2, Check, UserMinus, ShieldAlert } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
 import { DEFAULT_CATEGORIES } from '@/src/lib/constants';
 
@@ -15,8 +16,13 @@ export default function Settings({ onBack }: SettingsProps) {
   const [communityId, setCommunityId] = useState('');
   const [tempCommunityId, setTempCommunityId] = useState('');
   const [communityData, setCommunityData] = useState<any>(null);
+  const [newCommunityName, setNewCommunityName] = useState('');
+  const [chairmanName, setChairmanName] = useState('');
+  const [treasurerName, setTreasurerName] = useState('');
   const [newMemberUid, setNewMemberUid] = useState('');
   const [newMemberRole, setNewMemberRole] = useState<'admin' | 'viewer'>('viewer');
+  const [editingTitleUid, setEditingTitleUid] = useState<string | null>(null);
+  const [tempTitle, setTempTitle] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -58,7 +64,11 @@ export default function Settings({ onBack }: SettingsProps) {
       const commRef = doc(db, 'communities', id);
       const commSnap = await getDoc(commRef);
       if (commSnap.exists()) {
-        setCommunityData(commSnap.data());
+        const data = commSnap.data();
+        setCommunityData(data);
+        setNewCommunityName(data.name || `Kas ${id}`);
+        setChairmanName(data.chairman || '');
+        setTreasurerName(data.treasurer || '');
       }
     } catch (error) {
       console.error('Error loading community data:', error);
@@ -79,8 +89,11 @@ export default function Settings({ onBack }: SettingsProps) {
     }
   };
 
-  const updateCommunity = async () => {
-    const newId = tempCommunityId.trim().toUpperCase();
+  const updateCommunity = async (forcedId?: any) => {
+    // If called as event handler, forcedId will be the event object.
+    // We only want to use forcedId if it's a string.
+    const actualForcedId = typeof forcedId === 'string' ? forcedId : undefined;
+    const newId = (actualForcedId !== undefined ? actualForcedId : tempCommunityId).trim().toUpperCase();
     if (!auth.currentUser) return;
     
     setSaving(true);
@@ -97,19 +110,28 @@ export default function Settings({ onBack }: SettingsProps) {
               [auth.currentUser.uid]: 'admin'
             }
           };
-          await setDoc(commRef, newCommData);
+          try {
+            await setDoc(commRef, newCommData);
+          } catch (e) {
+            handleFirestoreError(e, OperationType.CREATE, `communities/${newId}`);
+          }
           setCommunityData(newCommData);
         } else {
           // Joining existing - note: in real app, might need approval
           // For now, if joined, add as viewer if not in roles
           const existingData = commSnap.data();
           if (!existingData.roles[auth.currentUser.uid]) {
-            const updatedRoles = {
-              ...existingData.roles,
-              [auth.currentUser.uid]: 'viewer'
-            };
-            await setDoc(commRef, { roles: updatedRoles }, { merge: true });
-            setCommunityData({ ...existingData, roles: updatedRoles });
+            try {
+              await updateDoc(commRef, {
+                [`roles.${auth.currentUser.uid}`]: 'viewer'
+              });
+              setCommunityData({ 
+                ...existingData, 
+                roles: { ...existingData.roles, [auth.currentUser.uid]: 'viewer' }
+              });
+            } catch (e) {
+              handleFirestoreError(e, OperationType.UPDATE, `communities/${newId}`);
+            }
           } else {
             setCommunityData(existingData);
           }
@@ -141,19 +163,77 @@ export default function Settings({ onBack }: SettingsProps) {
     setSaving(true);
     try {
       const commRef = doc(db, 'communities', communityId);
-      const updatedRoles = { ...communityData.roles };
       
       if (role === null) {
+        // Correct way to delete a key from a map field in Firestore
+        try {
+          await updateDoc(commRef, {
+            [`roles.${uid}`]: deleteField()
+          });
+        } catch (e) {
+          handleFirestoreError(e, OperationType.UPDATE, `communities/${communityId}`);
+        }
+        
+        // Update local state
+        const updatedRoles = { ...communityData.roles };
         delete updatedRoles[uid];
+        setCommunityData({ ...communityData, roles: updatedRoles });
       } else {
-        updatedRoles[uid] = role;
+        try {
+          await updateDoc(commRef, {
+            [`roles.${uid}`]: role
+          });
+        } catch (e) {
+          handleFirestoreError(e, OperationType.UPDATE, `communities/${communityId}`);
+        }
+        
+        // Update local state
+        setCommunityData({ 
+          ...communityData, 
+          roles: { ...communityData.roles, [uid]: role } 
+        });
+      }
+    } catch (error: any) {
+      console.error('Error updating member:', error);
+      const isPermissionError = error.code === 'permission-denied' || error.message?.includes('permission');
+      alert(isPermissionError 
+        ? 'Gagal: Anda tidak memiliki izin Admin untuk menghapus anggota ini.' 
+        : `Terjadi kesalahan: ${error.message || 'Gagal mengubah data anggota.'}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const updateMemberTitle = async (uid: string, title: string) => {
+    if (!communityId || !communityData || !auth.currentUser) return;
+    
+    // Check if current user is admin
+    if (communityData.roles[auth.currentUser.uid] !== 'admin') {
+      alert('Hanya Admin yang bisa mengubah jabatan anggota.');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const commRef = doc(db, 'communities', communityId);
+      
+      try {
+        await updateDoc(commRef, {
+          [`titles.${uid}`]: title
+        });
+      } catch (e) {
+        handleFirestoreError(e, OperationType.UPDATE, `communities/${communityId}`);
       }
       
-      await setDoc(commRef, { roles: updatedRoles }, { merge: true });
-      setCommunityData({ ...communityData, roles: updatedRoles });
-    } catch (error) {
-      console.error('Error updating member:', error);
-      alert('Gagal update anggota.');
+      // Update local state
+      setCommunityData({ 
+        ...communityData, 
+        titles: { ...communityData.titles, [uid]: title } 
+      });
+      setEditingTitleUid(null);
+    } catch (error: any) {
+      console.error('Error updating title:', error);
+      alert('Gagal mengubah jabatan anggota.');
     } finally {
       setSaving(false);
     }
@@ -163,6 +243,34 @@ export default function Settings({ onBack }: SettingsProps) {
     if (!newMemberUid.trim()) return;
     await updateMemberRole(newMemberUid.trim(), newMemberRole);
     setNewMemberUid('');
+  };
+
+  const updateCommunityMetadata = async () => {
+    if (!communityId || !auth.currentUser) return;
+    
+    // Check if current user is admin
+    if (communityData.roles[auth.currentUser.uid] !== 'admin') {
+      alert('Hanya Admin yang bisa mengubah nama komunitas.');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const commRef = doc(db, 'communities', communityId);
+      const updates = {
+        name: newCommunityName,
+        chairman: chairmanName,
+        treasurer: treasurerName
+      };
+      await updateDoc(commRef, updates);
+      setCommunityData({ ...communityData, ...updates });
+      alert('Informasi komunitas berhasil diperbarui.');
+    } catch (error) {
+      console.error('Error updating community info:', error);
+      alert('Gagal memperbarui informasi komunitas.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleToggleNotifications = async () => {
@@ -259,18 +367,35 @@ export default function Settings({ onBack }: SettingsProps) {
         {/* Profile Card */}
         <section className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 overflow-hidden relative">
           <div className="absolute top-0 right-0 p-8 opacity-5">
-            <Smartphone size={120} />
+            <UserIcon size={120} />
           </div>
-          <div className="flex items-center gap-4 mb-6 relative">
-            <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center text-white text-2xl font-black shadow-lg">
-              {auth.currentUser?.email?.charAt(0).toUpperCase()}
+          <div className="flex items-center gap-5 relative">
+            <div className="relative">
+              {auth.currentUser?.photoURL ? (
+                <img 
+                  src={auth.currentUser.photoURL} 
+                  alt="Profile" 
+                  className="w-20 h-20 rounded-2xl object-cover shadow-lg border-2 border-white"
+                />
+              ) : (
+                <div className="w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center text-white text-3xl font-black shadow-lg">
+                  {auth.currentUser?.email?.charAt(0).toUpperCase()}
+                </div>
+              )}
+              <div className="absolute -bottom-2 -right-2 p-1.5 bg-green-500 border-2 border-white rounded-full shadow-sm" />
             </div>
-            <div className="min-w-0">
-              <p className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-1">Akun Anda</p>
-              <h3 className="text-lg font-bold text-gray-900 truncate max-w-[200px] sm:max-w-md">{auth.currentUser?.email}</h3>
-              <div className="flex items-center gap-2 mt-1">
-                <span className="text-[10px] font-mono bg-gray-100 text-gray-500 px-2 py-0.5 rounded break-all">
-                  UID: {auth.currentUser?.uid}
+            
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.2em] mb-1">Profil Pengguna</p>
+              <h3 className="text-xl font-black text-gray-900 truncate tracking-tight">
+                {auth.currentUser?.displayName || 'Pengurus Digital'}
+              </h3>
+              <p className="text-sm font-medium text-gray-500 truncate mb-2">{auth.currentUser?.email}</p>
+              
+              <div className="inline-flex items-center gap-2 px-2 py-1 bg-gray-50 rounded-lg border border-gray-100">
+                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">UID</span>
+                <span className="text-[10px] font-mono text-gray-600 select-all">
+                  {auth.currentUser?.uid}
                 </span>
               </div>
             </div>
@@ -327,7 +452,7 @@ export default function Settings({ onBack }: SettingsProps) {
               </div>
 
               {communityId && (
-                <div className="bg-indigo-50/50 rounded-2xl p-4 border border-indigo-100">
+                <div className="bg-indigo-50/50 rounded-2xl p-4 border border-indigo-100 space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
@@ -342,12 +467,57 @@ export default function Settings({ onBack }: SettingsProps) {
                       )}
                     </div>
                     <button 
-                      onClick={() => { if(window.confirm('Keluar dari komunitas?')) { setTempCommunityId(''); updateCommunity(); } }}
+                      onClick={() => { if(window.confirm('Keluar dari komunitas?')) { setTempCommunityId(''); updateCommunity(''); } }}
                       className="px-4 py-2 bg-white text-red-500 text-xs font-bold rounded-xl border border-red-100 hover:bg-red-50 transition-all"
                     >
                       Putuskan
                     </button>
                   </div>
+
+                  {/* Community Info Customization */}
+                  {communityData?.roles[auth.currentUser?.uid || ''] === 'admin' && (
+                    <div className="pt-4 border-t border-indigo-100 space-y-3">
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-black text-indigo-400 uppercase tracking-widest ml-1">Nama Laporan / Komunitas</label>
+                        <input 
+                          type="text"
+                          value={newCommunityName}
+                          onChange={(e) => setNewCommunityName(e.target.value)}
+                          className="w-full px-4 py-2 bg-white border border-indigo-100 rounded-xl text-sm font-bold text-indigo-900 outline-none focus:ring-2 focus:ring-indigo-500"
+                          placeholder="Nama Komunitas (Cth: Kas RT 05)"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="flex flex-col gap-1">
+                          <label className="text-[10px] font-black text-indigo-400 uppercase tracking-widest ml-1">Ketua RT</label>
+                          <input 
+                            type="text"
+                            value={chairmanName}
+                            onChange={(e) => setChairmanName(e.target.value)}
+                            className="w-full px-4 py-2 bg-white border border-indigo-100 rounded-xl text-sm font-bold text-indigo-900 outline-none focus:ring-2 focus:ring-indigo-500"
+                            placeholder="Nama Ketua"
+                          />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <label className="text-[10px] font-black text-indigo-400 uppercase tracking-widest ml-1">Bendahara</label>
+                          <input 
+                            type="text"
+                            value={treasurerName}
+                            onChange={(e) => setTreasurerName(e.target.value)}
+                            className="w-full px-4 py-2 bg-white border border-indigo-100 rounded-xl text-sm font-bold text-indigo-900 outline-none focus:ring-2 focus:ring-indigo-500"
+                            placeholder="Nama Bendahara"
+                          />
+                        </div>
+                      </div>
+                      <button 
+                        onClick={updateCommunityMetadata}
+                        disabled={saving}
+                        className="w-full py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 transition-all active:scale-95 shadow-md shadow-indigo-100"
+                      >
+                        Simpan Info Laporan
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -364,43 +534,93 @@ export default function Settings({ onBack }: SettingsProps) {
                 
                 <div className="grid grid-cols-1 gap-2">
                   {Object.entries(communityData.roles).map(([uid, role]) => (
-                    <div key={uid} className="flex items-center justify-between p-3 bg-white rounded-2xl border border-gray-50 shadow-sm">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-gray-100 rounded-xl flex items-center justify-center text-gray-400 font-bold text-xs uppercase">
-                          {uid.substring(0, 2)}
+                    <div key={uid} className="flex flex-col p-3 bg-white rounded-2xl border border-gray-50 shadow-sm gap-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-gray-100 rounded-xl flex items-center justify-center text-gray-400 font-bold text-xs uppercase text-center overflow-hidden">
+                            {uid.substring(0, 2)}
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-[10px] font-mono text-gray-400">UID: {uid.substring(0, 10)}...</span>
+                            <div className="flex items-center gap-2">
+                              <span className={cn(
+                                "text-xs font-bold capitalize",
+                                role === 'admin' ? "text-indigo-600" : "text-gray-500"
+                              )}>{role as string}</span>
+                              {communityData.titles?.[uid] && (
+                                <span className="text-[10px] font-black text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-100/50">
+                                  {communityData.titles[uid]}
+                                </span>
+                              )}
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex flex-col">
-                          <span className="text-[10px] font-mono text-gray-400">UID: {uid.substring(0, 10)}...</span>
-                          <span className={cn(
-                            "text-xs font-bold capitalize",
-                            role === 'admin' ? "text-indigo-600" : "text-gray-500"
-                          )}>{role as string}</span>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        {uid !== auth.currentUser?.uid && (
-                          <>
-                            <select 
-                              value={role as string}
-                              onChange={(e) => updateMemberRole(uid, e.target.value)}
-                              className="text-[10px] font-bold bg-gray-50 border border-gray-100 rounded-lg px-2 py-1.5 outline-none focus:ring-1 focus:ring-indigo-500"
+                        
+                        <div className="flex items-center gap-2">
+                          {communityId && communityData.roles[auth.currentUser?.uid || ''] === 'admin' && (
+                            <button
+                              onClick={() => {
+                                setEditingTitleUid(uid);
+                                setTempTitle(communityData.titles?.[uid] || '');
+                              }}
+                              className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
+                              title="Edit Jabatan"
                             >
-                              <option value="viewer">Viewer</option>
-                              <option value="admin">Admin</option>
-                            </select>
-                            <button 
-                              onClick={() => { if(window.confirm('Hapus anggota?')) updateMemberRole(uid, null); }}
-                              className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
-                            >
-                              <X size={16} />
+                              <Edit2 size={16} />
                             </button>
-                          </>
-                        )}
-                        {uid === auth.currentUser?.uid && (
-                          <span className="text-[10px] font-bold text-indigo-400 bg-indigo-50 px-2 py-1 rounded-lg uppercase">Anda</span>
-                        )}
+                          )}
+
+                          {uid !== auth.currentUser?.uid && (
+                            <>
+                              <select 
+                                value={role as string}
+                                onChange={(e) => updateMemberRole(uid, e.target.value)}
+                                className="text-[10px] font-bold bg-gray-50 border border-gray-100 rounded-lg px-2 py-1.5 outline-none focus:ring-1 focus:ring-indigo-500"
+                              >
+                                <option value="viewer">Viewer</option>
+                                <option value="admin">Admin</option>
+                              </select>
+                              <button 
+                                onClick={() => { if(window.confirm('Hapus anggota ini dari komunitas?')) updateMemberRole(uid, null); }}
+                                title="Hapus Anggota"
+                                className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all group/del"
+                              >
+                                <UserMinus size={18} className="group-hover/del:scale-110 transition-transform" />
+                              </button>
+                            </>
+                          )}
+                          {uid === auth.currentUser?.uid && (
+                            <span className="text-[10px] font-bold text-indigo-400 bg-indigo-50 px-2 py-1 rounded-lg uppercase">Anda</span>
+                          )}
+                        </div>
                       </div>
+
+                      {/* Inline Title Editor */}
+                      {editingTitleUid === uid && (
+                        <div className="flex items-center gap-2 p-2 bg-indigo-50/50 rounded-xl border border-indigo-100 animate-in slide-in-from-top-2 duration-200">
+                          <input
+                            type="text"
+                            value={tempTitle}
+                            onChange={(e) => setTempTitle(e.target.value)}
+                            placeholder="Set Jabatan (Cth: Bendahara)"
+                            className="flex-1 text-xs px-3 py-1.5 bg-white border border-indigo-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
+                            autoFocus
+                            onKeyDown={(e) => e.key === 'Enter' && updateMemberTitle(uid, tempTitle)}
+                          />
+                          <button
+                            onClick={() => updateMemberTitle(uid, tempTitle)}
+                            className="p-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                          >
+                            <Check size={14} />
+                          </button>
+                          <button
+                            onClick={() => setEditingTitleUid(null)}
+                            className="p-1.5 bg-white text-gray-400 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

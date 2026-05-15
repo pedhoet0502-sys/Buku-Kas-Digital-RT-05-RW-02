@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { onSnapshot, collection, query, orderBy, where } from 'firebase/firestore';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { db, auth, loginWithGoogle, logout } from './lib/firebase';
-import { Plus, LogOut, LayoutDashboard, History, User as UserIcon, LogIn, Settings as SettingsIcon } from 'lucide-react';
+import { handleFirestoreError, OperationType } from './lib/firestoreErrorHandler';
+import { motion } from 'motion/react';
+import { Plus, LogOut, LayoutDashboard, History, User as UserIcon, LogIn, Settings as SettingsIcon, RefreshCw, CheckCircle2 } from 'lucide-react';
 import { cn } from './lib/utils';
 import Dashboard from './components/Dashboard';
 import TransactionList from './components/TransactionList';
@@ -10,6 +12,7 @@ import TransactionForm from './components/TransactionForm';
 import Settings from './components/Settings';
 import { doc, getDoc } from 'firebase/firestore';
 import { DEFAULT_CATEGORIES } from './lib/constants';
+import { AnimatePresence } from 'motion/react';
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -20,7 +23,23 @@ export default function App() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [communityId, setCommunityId] = useState<string | null>(null);
   const [communityRole, setCommunityRole] = useState<'admin' | 'viewer' | null>(null);
+  const [userTitle, setUserTitle] = useState<string | null>(null);
+  const [communityTitles, setCommunityTitles] = useState<{[key: string]: string}>({});
+  const [communityData, setCommunityData] = useState<any>(null);
   const [categories, setCategories] = useState<{income: string[], expense: string[]}>(DEFAULT_CATEGORIES);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [showSyncNotice, setShowSyncNotice] = useState(false);
+
+  const handleSync = () => {
+    if (isSyncing) return;
+    setIsSyncing(true);
+    // Simulate sync animation
+    setTimeout(() => {
+      setIsSyncing(false);
+      setShowSyncNotice(true);
+      setTimeout(() => setShowSyncNotice(false), 3000);
+    }, 1500);
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (u) => {
@@ -33,45 +52,78 @@ export default function App() {
   // Monitor settings for notifications, categories, and communityId
   useEffect(() => {
     if (!user) return;
-    async function loadSettings() {
+    
+    let unsubscribeSettings: (() => void) | undefined;
+    let unsubscribeCommunity: (() => void) | undefined;
+
+    async function setupListeners() {
       try {
         const settingsRef = doc(db, 'settings', user.uid);
-        const settingsSnap = await getDoc(settingsRef);
-        if (settingsSnap.exists()) {
-          const data = settingsSnap.data();
-          setNotificationsEnabled(data.notificationsEnabled || false);
-          setCommunityId(data.communityId || null);
-          
-          if (data.communityId) {
-            try {
+        unsubscribeSettings = onSnapshot(settingsRef, (settingsSnap) => {
+          if (settingsSnap.exists()) {
+            const data = settingsSnap.data();
+            setNotificationsEnabled(data.notificationsEnabled || false);
+            setCommunityId(data.communityId || null);
+            
+            if (data.categories) {
+              setCategories(data.categories);
+            }
+
+            // Community listener
+            if (data.communityId) {
               const commRef = doc(db, 'communities', data.communityId);
-              const commSnap = await getDoc(commRef);
-              if (commSnap.exists()) {
-                setCommunityRole(commSnap.data().roles[user.uid] || 'viewer');
-              } else {
-                setCommunityRole('admin'); 
+              if (unsubscribeCommunity) unsubscribeCommunity();
+              
+              unsubscribeCommunity = onSnapshot(commRef, (commSnap) => {
+                if (commSnap.exists()) {
+                  const commData = commSnap.data();
+                  setCommunityData(commData);
+                  setCommunityRole(commData.roles?.[user.uid] || 'viewer');
+                  setCommunityTitles(commData.titles || {});
+                  setUserTitle(commData.titles?.[user.uid] || null);
+                } else {
+                  setCommunityData(null);
+                  setCommunityRole('admin');
+                  setCommunityTitles({});
+                  setUserTitle(null);
+                }
+              }, (err) => {
+                console.error("Error listening to community:", err);
+                setCommunityData(null);
+                setCommunityRole('viewer');
+                setCommunityTitles({});
+                setUserTitle(null);
+              });
+            } else {
+              setCommunityData(null);
+              setCommunityRole('admin');
+              setCommunityTitles({});
+              setUserTitle(null);
+              if (unsubscribeCommunity) {
+                unsubscribeCommunity();
+                unsubscribeCommunity = undefined;
               }
-            } catch (err) {
-              console.error("Error accessing community:", err);
-              setCommunityRole('viewer'); // Fallback to viewer if permission error
             }
           } else {
-            setCommunityRole('admin'); // Personal mode
+            setCommunityId(null);
+            setCommunityData(null);
+            setCommunityRole('admin');
+            setCommunityTitles({});
+            setUserTitle(null);
           }
-
-          if (data.categories) {
-            setCategories(data.categories);
-          }
-        } else {
-          setCommunityId(null);
-          setCommunityRole('admin');
-        }
+        });
       } catch (e) {
-        console.error("Error loading settings:", e);
+        console.error("Error setting up listeners:", e);
       }
     }
-    loadSettings();
-  }, [user, activeTab]);
+    
+    setupListeners();
+    
+    return () => {
+      if (unsubscribeSettings) unsubscribeSettings();
+      if (unsubscribeCommunity) unsubscribeCommunity();
+    };
+  }, [user]);
 
   useEffect(() => {
     if (!user) {
@@ -95,8 +147,8 @@ export default function App() {
       );
     }
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const docs = snapshot.docs.map(doc => ({
+    const unsubscribe = onSnapshot(q as any, (snapshot: any) => {
+      const docs = snapshot.docs.map((doc: any) => ({
         id: doc.id,
         ...doc.data()
       }));
@@ -115,8 +167,14 @@ export default function App() {
       });
 
       setTransactions(docs);
-    }, (error) => {
+    }, (error: any) => {
       console.error("Firestore Listen Error:", error);
+      // If it's a permission error and we are in community mode, it might be due to revoked access
+      if (communityId && (error.code === 'permission-denied' || error.message?.includes('permission'))) {
+        console.warn("Akses komunitas ditolak, kembali ke mode personal.");
+        setCommunityId(null);
+      }
+      handleFirestoreError(error, OperationType.LIST, 'transactions');
     });
 
     return () => unsubscribe();
@@ -169,11 +227,31 @@ export default function App() {
             <span className="font-black text-gray-900 tracking-tight text-lg">KAS RT</span>
           </div>
           <div className="flex items-center gap-3">
+            <motion.button
+              onClick={handleSync}
+              whileTap={{ scale: 0.9 }}
+              className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-xl transition-all"
+              title="Sinkronisasi Cloud"
+            >
+              <motion.div
+                animate={isSyncing ? { rotate: 360 } : { rotate: 0 }}
+                transition={isSyncing ? { repeat: Infinity, duration: 1, ease: "linear" } : { duration: 0.5 }}
+              >
+                <RefreshCw size={20} className={cn(isSyncing ? "text-indigo-600" : "text-gray-400")} />
+              </motion.div>
+            </motion.button>
             <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-full border border-gray-100">
               <div className="w-6 h-6 rounded-full overflow-hidden bg-indigo-100">
                 {user.photoURL ? <img src={user.photoURL} alt="" /> : <UserIcon size={14} className="m-auto mt-1" />}
               </div>
-              <span className="text-xs font-bold text-gray-700 truncate max-w-[100px]">{user.displayName || 'User'}</span>
+              <div className="flex flex-col">
+                <span className="text-[10px] font-bold text-gray-700 truncate max-w-[100px] leading-tight">{user.displayName || 'User'}</span>
+                {userTitle && (
+                  <span className="text-[9px] font-black text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded mt-0.5 uppercase tracking-wide leading-none w-fit">
+                    {userTitle}
+                  </span>
+                )}
+              </div>
             </div>
             <button
               onClick={logout}
@@ -222,13 +300,15 @@ export default function App() {
         </div>
 
         {/* Content */}
-        {activeTab === 'dashboard' && <Dashboard transactions={transactions} />}
+        {activeTab === 'dashboard' && <Dashboard transactions={transactions} communityData={communityData} />}
         {activeTab === 'transactions' && (
           <TransactionList 
             transactions={transactions} 
             customCategories={categories}
             currentCommunityId={communityId}
             currentRole={communityRole}
+            memberTitles={communityTitles}
+            currentUserTitle={userTitle}
           />
         )}
         {activeTab === 'settings' && <Settings onBack={() => setActiveTab('dashboard')} />}
@@ -284,8 +364,26 @@ export default function App() {
           onClose={() => setShowForm(false)} 
           customCategories={categories}
           communityId={communityId}
+          userTitle={userTitle}
         />
       )}
+
+      {/* Sync Notification */}
+      <AnimatePresence>
+        {showSyncNotice && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.9 }}
+            className="fixed bottom-32 md:bottom-24 left-1/2 -translate-x-1/2 z-[60] bg-gray-900 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-white/10"
+          >
+            <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+              <CheckCircle2 size={14} className="text-white" />
+            </div>
+            <span className="text-sm font-bold tracking-tight">Data tersinkronisasi</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -1,32 +1,25 @@
 import React, { useState } from 'react';
 import { collection, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db, auth } from '@/src/lib/firebase';
+import { handleFirestoreError, OperationType } from '@/src/lib/firestoreErrorHandler';
 import { cn } from '@/src/lib/utils';
 import { Plus, X } from 'lucide-react';
-
-enum OperationType {
-  CREATE = 'create',
-  UPDATE = 'update',
-  DELETE = 'delete',
-  LIST = 'list',
-  GET = 'get',
-  WRITE = 'write',
-}
 
 interface TransactionFormProps {
   onClose: () => void;
   customCategories?: { income: string[], expense: string[] };
   communityId?: string | null;
+  userTitle?: string | null;
 }
 
-export default function TransactionForm({ onClose, customCategories, communityId }: TransactionFormProps) {
+export default function TransactionForm({ onClose, customCategories, communityId, userTitle }: TransactionFormProps) {
   const categories = customCategories || {
     income: ['Iuran Bulanan', 'Donasi', 'Bunga Bank', 'Lainnya'],
     expense: ['Kebersihan', 'Keamanan', 'Listrik & Air', 'Perbaikan', 'Acara RT', 'Lainnya'],
   };
   const [type, setType] = useState<'income' | 'expense'>('income');
   const [amount, setAmount] = useState('');
-  const [category, setCategory] = useState(categories.income[0]);
+  const [category, setCategory] = useState(categories.income[0] || '');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
@@ -46,20 +39,20 @@ export default function TransactionForm({ onClose, customCategories, communityId
         description,
         date: new Date(date).toISOString(),
         userId: auth.currentUser.uid,
+        userName: auth.currentUser.displayName || auth.currentUser.email || 'Pengurus',
+        userTitle: userTitle || null,
         communityId: communityId || null,
         createdAt: serverTimestamp(),
       };
 
-      await setDoc(doc(db, path, transactionId), transactionData);
+      try {
+        await setDoc(doc(db, path, transactionId), transactionData);
+      } catch (e) {
+        handleFirestoreError(e, OperationType.WRITE, `${path}/${transactionId}`);
+      }
       onClose();
     } catch (error) {
-      const errInfo = {
-        error: error instanceof Error ? error.message : String(error),
-        authInfo: { userId: auth.currentUser?.uid },
-        operationType: OperationType.WRITE,
-        path,
-      };
-      console.error('Firestore Error: ', JSON.stringify(errInfo));
+      console.error('Submit Error:', error);
       alert('Gagal menyimpan transaksi. Pastikan data benar.');
     } finally {
       setLoading(false);
@@ -80,7 +73,7 @@ export default function TransactionForm({ onClose, customCategories, communityId
           <div className="flex p-1 bg-gray-100 rounded-lg">
             <button
               type="button"
-              onClick={() => { setType('income'); setCategory(categories.income[0]); }}
+              onClick={() => { setType('income'); setCategory(categories.income[0] || ''); }}
               className={cn(
                 "flex-1 py-2 text-sm font-medium rounded-md transition-all",
                 type === 'income' ? "bg-white text-green-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
@@ -90,7 +83,7 @@ export default function TransactionForm({ onClose, customCategories, communityId
             </button>
             <button
               type="button"
-              onClick={() => { setType('expense'); setCategory(categories.expense[0]); }}
+              onClick={() => { setType('expense'); setCategory(categories.expense[0] || ''); }}
               className={cn(
                 "flex-1 py-2 text-sm font-medium rounded-md transition-all",
                 type === 'expense' ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
@@ -114,15 +107,24 @@ export default function TransactionForm({ onClose, customCategories, communityId
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
-            >
-              {categories[type].map(cat => (
-                <option key={cat} value={cat}>{cat}</option>
-              ))}
-            </select>
+            {categories[type].length > 0 ? (
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+              >
+                {categories[type].map(cat => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+            ) : (
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                <p className="text-xs text-amber-700">
+                  Belum ada kategori {type === 'income' ? 'pemasukan' : 'pengeluaran'}. 
+                  Silakan buat kategori di menu <strong>Pengaturan</strong> terlebih dahulu.
+                </p>
+              </div>
+            )}
           </div>
 
           <div>
@@ -148,11 +150,11 @@ export default function TransactionForm({ onClose, customCategories, communityId
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || categories[type].length === 0}
             className={cn(
               "w-full py-3 rounded-xl font-bold text-white transition-all shadow-lg active:scale-[0.98]",
               type === 'income' ? "bg-green-600 hover:bg-green-700 shadow-green-200" : "bg-red-600 hover:bg-red-700 shadow-red-200",
-              loading && "opacity-50 cursor-not-allowed"
+              (loading || categories[type].length === 0) && "opacity-50 cursor-not-allowed"
             )}
           >
             {loading ? 'Menyimpan...' : 'Simpan Transaksi'}

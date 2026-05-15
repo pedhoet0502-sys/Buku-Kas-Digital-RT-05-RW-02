@@ -12,6 +12,8 @@
         "date": { "type": "string", "format": "date-time", "description": "The date of the transaction." },
         "createdAt": { "type": "string", "format": "date-time", "description": "Server creation timestamp." },
         "userId": { "type": "string", "description": "UID of the user who created this." },
+        "userName": { "type": "string", "description": "Display name of the user who created this (transparent record)." },
+        "userTitle": { "type": "string", "description": "Position title of the user who created this transaction." },
         "communityId": { "type": "string", "description": "ID of the community this transaction belongs to (for sharing)." }
       },
       "required": ["amount", "type", "category", "date", "userId", "createdAt"]
@@ -25,6 +27,10 @@
         "roles": { 
           "type": "object", 
           "description": "Mapping of userId to their role (admin or viewer)." 
+        },
+        "titles": {
+          "type": "object",
+          "description": "Mapping of userId to their position title (e.g., Bendahara)."
         }
       },
       "required": ["name", "roles"]

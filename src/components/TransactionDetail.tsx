@@ -5,6 +5,7 @@ import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db, auth } from '@/src/lib/firebase';
+import { handleFirestoreError, OperationType } from '@/src/lib/firestoreErrorHandler';
 import { cn } from '@/src/lib/utils';
 
 interface TransactionDetailProps {
@@ -13,16 +14,12 @@ interface TransactionDetailProps {
   customCategories?: { income: string[], expense: string[] };
   currentCommunityId?: string | null;
   currentRole?: 'admin' | 'viewer' | null;
-}
-
-enum OperationType {
-  UPDATE = 'update',
-  DELETE = 'delete',
+  memberTitles?: {[key: string]: string};
 }
 
 import ConfirmModal from './ConfirmModal';
 
-export default function TransactionDetail({ transaction, onClose, customCategories, currentCommunityId, currentRole }: TransactionDetailProps) {
+export default function TransactionDetail({ transaction, onClose, customCategories, currentCommunityId, currentRole, memberTitles }: TransactionDetailProps) {
   const categories = customCategories || {
     income: ['Iuran Bulanan', 'Donasi', 'Bunga Bank', 'Lainnya'],
     expense: ['Kebersihan', 'Keamanan', 'Listrik & Air', 'Perbaikan', 'Acara RT', 'Lainnya'],
@@ -49,13 +46,17 @@ export default function TransactionDetail({ transaction, onClose, customCategori
     setLoading(true);
     try {
       const transactionRef = doc(db, 'transactions', transaction.id);
-      await updateDoc(transactionRef, {
-        amount: Number(amount),
-        type,
-        category,
-        description,
-        date: new Date(date).toISOString(),
-      });
+      try {
+        await updateDoc(transactionRef, {
+          amount: Number(amount),
+          type,
+          category,
+          description,
+          date: new Date(date).toISOString(),
+        });
+      } catch (e) {
+        handleFirestoreError(e, OperationType.UPDATE, `transactions/${transaction.id}`);
+      }
       setIsEditing(false);
     } catch (error) {
       console.error('Update Error:', error);
@@ -70,7 +71,11 @@ export default function TransactionDetail({ transaction, onClose, customCategori
 
     setLoading(true);
     try {
-      await deleteDoc(doc(db, 'transactions', transaction.id));
+      try {
+        await deleteDoc(doc(db, 'transactions', transaction.id));
+      } catch (e) {
+        handleFirestoreError(e, OperationType.DELETE, `transactions/${transaction.id}`);
+      }
       onClose();
     } catch (error) {
       console.error('Delete Error:', error);
@@ -235,11 +240,19 @@ export default function TransactionDetail({ transaction, onClose, customCategori
                   </div>
                   <div>
                     <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-0.5">Dicatat Oleh</p>
-                    <p className="text-gray-900 font-semibold">
-                      ID: {transaction.userId.substring(0, 8)}...
+                    <p className="text-gray-900 font-semibold flex items-center gap-2">
+                      {transaction.userName || 'Pengurus Digital'}
+                      {(transaction.userTitle || memberTitles?.[transaction.userId]) && (
+                        <span className="text-[10px] font-black text-white bg-indigo-600 px-2.5 py-1 rounded-lg uppercase tracking-wider shadow-sm shadow-indigo-100">
+                          {transaction.userTitle || memberTitles?.[transaction.userId]}
+                        </span>
+                      )}
                     </p>
                     <p className="text-[10px] text-gray-400 mt-1">
-                      Dibuat pada: {format(new Date(transaction.createdAt?.toDate?.() || transaction.createdAt), 'dd/MM/yyyy HH:mm', { locale: id })}
+                      ID: {transaction.userId.substring(0, 8)}...
+                    </p>
+                    <p className="text-[10px] text-gray-400 mt-0.5">
+                      Dibuat pada: {format(new Date(transaction.createdAt?.toDate?.() || transaction.createdAt), 'dd MMMM yyyy, HH:mm', { locale: id })}
                     </p>
                   </div>
                 </div>

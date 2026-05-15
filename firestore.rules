@@ -28,7 +28,10 @@ service cloud.firestore {
     }
 
     function getCommunityRole(communityId) {
-      return get(/databases/$(database)/documents/communities/$(communityId)).data.roles[request.auth.uid];
+      let path = /databases/$(database)/documents/communities/$(communityId);
+      return exists(path) 
+        ? get(path).data.get('roles', {}).get(request.auth.uid, null) 
+        : null;
     }
 
     function isCommunityAdmin(communityId) {
@@ -40,14 +43,16 @@ service cloud.firestore {
     }
 
     // --- Validation Helpers ---
-    function isValidTransaction(data) {
+    function isValidTransaction(data, isUpdate) {
       return data.amount is number && data.amount >= 0 &&
              data.type in ['income', 'expense'] &&
              data.category is string && data.category.size() <= 100 &&
              data.description is string && data.description.size() <= 500 &&
              data.date is string &&
-             data.userId == request.auth.uid &&
-             data.createdAt == request.time &&
+             data.userId == (isUpdate ? existing().userId : request.auth.uid) &&
+             data.userName is string && data.userName.size() <= 200 &&
+             (data.get('userTitle', null) == null || (data.userTitle is string && data.userTitle.size() <= 100)) &&
+             (isUpdate ? data.createdAt == existing().createdAt : data.createdAt == request.time) &&
              (data.communityId == null || (data.communityId is string && data.communityId.size() <= 50));
     }
 
@@ -60,19 +65,21 @@ service cloud.firestore {
       
       allow create: if isSignedIn() &&
                       isValidId(transactionId) &&
-                      isValidTransaction(incoming()) &&
+                      isValidTransaction(incoming(), false) &&
                       (
                         (incoming().communityId == null) ||
                         (incoming().communityId != null && isCommunityAdmin(incoming().communityId))
                       );
 
       allow update: if isSignedIn() &&
-                      isValidTransaction(incoming()) &&
+                      isValidTransaction(incoming(), true) &&
                       (
                         isOwner(existing().userId) ||
                         (existing().communityId != null && isCommunityAdmin(existing().communityId))
                       ) &&
                       incoming().userId == existing().userId &&
+                      incoming().userName == existing().userName &&
+                      incoming().get('userTitle', null) == existing().get('userTitle', null) &&
                       incoming().createdAt == existing().createdAt &&
                       incoming().communityId == existing().communityId &&
                       incoming().diff(existing()).affectedKeys().hasOnly(['amount', 'type', 'category', 'description', 'date']);
@@ -89,10 +96,22 @@ service cloud.firestore {
 
     match /communities/{communityId} {
       allow get: if isSignedIn();
-      allow list: if isSignedIn() && isCommunityViewer(communityId);
-      allow create: if isSignedIn() && isValidId(communityId);
-      allow update: if isCommunityAdmin(communityId) && 
-                      incoming().roles.size() < 100;
+      allow list: if isSignedIn() && resource.data.roles[request.auth.uid] != null;
+      allow create: if isSignedIn() && isValidId(communityId) && 
+                      incoming().name is string &&
+                      incoming().roles is map &&
+                      incoming().roles[request.auth.uid] == 'admin';
+      allow update: if isSignedIn() && (
+                      // 1. Admin can change anything
+                      (resource.data.roles[request.auth.uid] == 'admin') ||
+                      // 2. Non-member can join as viewer
+                      (resource.data.roles[request.auth.uid] == null && 
+                       incoming().roles[request.auth.uid] == 'viewer' &&
+                       incoming().roles.size() == existing().roles.size() + 1 &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['roles']))
+                    ) && 
+                    incoming().roles.size() > 0 &&
+                    incoming().roles.size() < 100;
       allow delete: if false;
     }
   }

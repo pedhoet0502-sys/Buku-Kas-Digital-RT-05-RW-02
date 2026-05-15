@@ -3,17 +3,20 @@ import { X, Download, FileText } from 'lucide-react';
 import { getMonthlyReportPdf } from '@/src/lib/pdfGenerator';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
+import { formatCurrency, cn } from '@/src/lib/utils';
 
 interface ReportPreviewProps {
   transactions: any[];
+  communityData: any;
+  period?: { month: number, year: number };
   onClose: () => void;
 }
 
-export default function ReportPreview({ transactions, onClose }: ReportPreviewProps) {
+export default function ReportPreview({ transactions, communityData, period, onClose }: ReportPreviewProps) {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    const doc = getMonthlyReportPdf(transactions);
+    const doc = getMonthlyReportPdf(transactions, communityData, period);
     const blob = doc.output('blob');
     const url = URL.createObjectURL(blob);
     setPdfUrl(url);
@@ -21,13 +24,16 @@ export default function ReportPreview({ transactions, onClose }: ReportPreviewPr
     return () => {
       URL.revokeObjectURL(url);
     };
-  }, [transactions]);
+  }, [transactions, communityData, period]);
 
   const handleDownload = () => {
-    const doc = getMonthlyReportPdf(transactions);
-    const monthName = format(new Date(), 'MMMM yyyy', { locale: id });
+    const doc = getMonthlyReportPdf(transactions, communityData, period);
+    const now = period ? new Date(period.year, period.month, 1) : new Date();
+    const monthName = format(now, 'MMMM yyyy', { locale: id });
     doc.save(`Laporan_Kas_RT_${monthName.replace(' ', '_')}.pdf`);
   };
+
+  const currentPeriodDate = period ? new Date(period.year, period.month, 1) : null;
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
@@ -38,8 +44,10 @@ export default function ReportPreview({ transactions, onClose }: ReportPreviewPr
               <FileText size={20} />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-gray-900 leading-tight">Pratinjau Laporan PDF</h2>
-              <p className="text-xs text-gray-500 uppercase tracking-widest font-bold">Periode {format(new Date(), 'MMMM yyyy', { locale: id })}</p>
+              <h2 className="text-lg font-black text-slate-900 tracking-tight leading-tight">Pratinjau Laporan</h2>
+              <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">
+                {currentPeriodDate ? format(currentPeriodDate, 'MMMM yyyy', { locale: id }) : 'Semua Periode'}
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -56,19 +64,92 @@ export default function ReportPreview({ transactions, onClose }: ReportPreviewPr
           </div>
         </div>
 
-        <div className="flex-1 bg-gray-100 overflow-hidden relative">
-          {pdfUrl ? (
-            <iframe 
-              src={`${pdfUrl}#toolbar=0`} 
-              className="w-full h-full border-none"
-              title="PDF Report Preview"
-            />
-          ) : (
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
-              <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-              <p>Menyiapkan pratinjau...</p>
+        <div className="flex-1 bg-gray-100 overflow-y-auto p-4 md:p-8 flex justify-center">
+          <div className="bg-white w-full max-w-[21cm] min-h-[29.7cm] shadow-xl p-[1cm] md:p-[2cm] flex flex-col font-serif text-slate-800">
+            {/* Report Content Wrapper */}
+            <div className="flex flex-col h-full">
+              {/* Header */}
+              <div className="text-center mb-10">
+                <h1 className="text-2xl md:text-3xl font-bold uppercase tracking-tight mb-1">
+                  {communityData?.name || 'KAS RT DIGITAL'}
+                </h1>
+                <p className="text-lg font-medium text-slate-600 mb-2">LAPORAN KEUANGAN BULANAN</p>
+                <div className="inline-block px-4 py-1 bg-slate-100 rounded-full text-sm font-bold text-slate-700">
+                  Periode: {currentPeriodDate ? format(currentPeriodDate, 'MMMM yyyy', { locale: id }) : 'Semua Data'}
+                </div>
+              </div>
+
+              <div className="h-px bg-slate-200 w-full mb-8"></div>
+
+              {/* Transactions Table */}
+              <div className="flex-1">
+                <table className="w-full border-collapse text-[11px]">
+                  <thead>
+                    <tr className="bg-slate-800 text-white leading-tight">
+                      <th className="p-1 px-2 border border-slate-700 text-center w-8">No</th>
+                      <th className="p-1 px-2 border border-slate-700 text-center w-20">Tanggal</th>
+                      <th className="p-1 px-2 border border-slate-700 text-left">Keterangan</th>
+                      <th className="p-1 px-2 border border-slate-700 text-center w-24">Pemasukan</th>
+                      <th className="p-1 px-2 border border-slate-700 text-center w-24">Pengeluaran</th>
+                      <th className="p-1 px-2 border border-slate-700 text-center w-28">Saldo</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(() => {
+                      let runningBalance = 0;
+                      return transactions
+                        .slice()
+                        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                        .map((t, i) => {
+                          if (t.type === 'income') runningBalance += t.amount;
+                          else runningBalance -= t.amount;
+                          return { ...t, currentBalance: runningBalance };
+                        })
+                        .map((t, i) => (
+                          <tr key={t.id} className={i % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                            <td className="p-1 px-2 border border-slate-200 text-center font-mono">{i + 1}</td>
+                            <td className="p-1 px-2 border border-slate-200 text-center">{format(new Date(t.date), 'dd/MM/yy')}</td>
+                            <td className="p-1 px-2 border border-slate-200 font-medium text-slate-700">
+                              {t.description || t.category || '-'}
+                            </td>
+                            <td className="p-1 px-2 border border-slate-200 text-right text-emerald-600 font-bold">
+                              {t.type === 'income' ? formatCurrency(t.amount).replace('Rp', '').trim() : '-'}
+                            </td>
+                            <td className="p-1 px-2 border border-slate-200 text-right text-rose-600 font-bold">
+                              {t.type === 'expense' ? formatCurrency(t.amount).replace('Rp', '').trim() : '-'}
+                            </td>
+                            <td className="p-1 px-2 border border-slate-200 text-right font-black text-slate-900 bg-slate-50/30">
+                              {formatCurrency(t.currentBalance).replace('Rp', '').trim()}
+                            </td>
+                          </tr>
+                        ));
+                    })()}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Signatures */}
+              <div className="mt-16 grid grid-cols-2 gap-20">
+                <div className="text-center">
+                  <p className="mb-20">Ketua RT,</p>
+                  <div className="border-b border-slate-800 w-48 mx-auto font-bold uppercase">
+                    {communityData?.chairman || '..........................'}
+                  </div>
+                </div>
+                <div className="text-center">
+                  <p className="mb-20">Bendahara,</p>
+                  <div className="border-b border-slate-800 w-48 mx-auto font-bold uppercase">
+                    {communityData?.treasurer || '..........................'}
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="mt-20 pt-8 border-t border-slate-100 text-center text-[10px] text-slate-400 uppercase tracking-widest font-bold">
+                Laporan Otomatis Kas RT Digital • {format(new Date(), 'dd MMMM yyyy HH:mm', { locale: id })}
+              </div>
             </div>
-          )}
+          </div>
         </div>
 
         <div className="p-4 bg-gray-50 md:hidden shrink-0">
