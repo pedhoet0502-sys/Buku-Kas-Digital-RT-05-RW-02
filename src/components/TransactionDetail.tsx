@@ -120,9 +120,9 @@ export default function TransactionDetail({ transaction, onClose, customCategori
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-lg shadow-indigo-200"></div>
-              <h5 className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.3em] leading-none">Dokumen Transaksi</h5>
+              <h5 className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none">Dokumen Transaksi</h5>
             </div>
-            <h2 className="text-3xl font-black text-slate-900 tracking-tight">
+            <h2 className="text-xl font-bold text-slate-900 tracking-tight">
               {isEditing ? 'Revisi Transaksi' : 'Detail Transaksi'}
             </h2>
           </div>
@@ -283,11 +283,11 @@ export default function TransactionDetail({ transaction, onClose, customCategori
                       <Calendar size={20} />
                     </div>
                     <div className="space-y-1">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Hari, tanggal</p>
-                      <p className="text-slate-900 font-bold text-lg tracking-tight">
+                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Hari, tanggal</p>
+                      <p className="text-slate-900 font-semibold text-base tracking-tight">
                         {format(new Date(transaction.date), 'EEEE, dd MMMM yyyy', { locale: id })}
                       </p>
-                      <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                      <div className="flex items-center gap-2 text-[10px] font-medium text-slate-400 uppercase tracking-widest">
                         <Clock size={10} />
                         {transaction.createdAt ? format(new Date(transaction.createdAt?.toDate?.() || transaction.createdAt), 'HH:mm:ss') : '--:--:--'}
                       </div>
@@ -299,8 +299,8 @@ export default function TransactionDetail({ transaction, onClose, customCategori
                       <Info size={20} />
                     </div>
                     <div className="space-y-1">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Uraian transaksi</p>
-                      <p className="text-slate-700 font-bold leading-relaxed italic pr-4">
+                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Uraian transaksi</p>
+                      <p className="text-slate-700 font-medium text-sm leading-relaxed italic pr-4">
                         "{transaction.description || 'Tidak ada uraian transaksi.'}"
                       </p>
                     </div>
@@ -313,13 +313,13 @@ export default function TransactionDetail({ transaction, onClose, customCategori
                       <Fingerprint size={20} />
                     </div>
                     <div className="space-y-1">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Identitas Operator</p>
+                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Identitas Operator</p>
                       <div className="flex items-center gap-3">
-                        <p className="text-slate-900 font-bold text-lg tracking-tight">
+                        <p className="text-slate-900 font-semibold text-base tracking-tight">
                           {transaction.userName || 'Root Admin'}
                         </p>
                         {(transaction.userTitle || memberTitles?.[transaction.userId]) && (
-                          <span className="text-[9px] font-black text-white bg-slate-900 px-3 py-1 rounded-lg uppercase tracking-widest">
+                          <span className="text-[8px] font-bold text-white bg-slate-900 px-2 py-0.5 rounded-md uppercase tracking-widest">
                             {transaction.userTitle || memberTitles?.[transaction.userId]}
                           </span>
                         )}
@@ -332,8 +332,8 @@ export default function TransactionDetail({ transaction, onClose, customCategori
                       <CalendarClock size={20} />
                     </div>
                     <div className="space-y-1">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Data Entry</p>
-                      <p className="text-slate-900 font-bold text-lg tracking-tight">
+                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Data Entry</p>
+                      <p className="text-slate-900 font-semibold text-base tracking-tight">
                         {transaction.createdAt 
                           ? format(new Date(transaction.createdAt?.toDate?.() || transaction.createdAt), 'EEEE, dd MMMM yyyy • HH:mm', { locale: id })
                           : 'Waktu input tidak tercatat'}
@@ -341,21 +341,7 @@ export default function TransactionDetail({ transaction, onClose, customCategori
                     </div>
                   </div>
 
-                  <div className="p-6 bg-indigo-900 rounded-[2rem] text-white space-y-4 relative overflow-hidden shadow-xl shadow-indigo-100">
-                    <div className="absolute -top-4 -right-4 w-20 h-20 bg-white/10 rounded-full blur-2xl" />
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-md">
-                        <Clock size={14} />
-                      </div>
-                      <p className="text-[10px] font-black uppercase tracking-widest">Sinkronisasi Jaringan</p>
-                    </div>
-                    <p className="text-[11px] font-bold text-indigo-100 leading-relaxed max-w-[200px]">
-                      Data ini telah diverifikasi dan diduplikasi ke node penyimpanan harian.
-                    </p>
-                    <p className="text-[10px] font-black text-indigo-300 uppercase tracking-widest pt-2 border-t border-white/10">
-                      {format(new Date(transaction.createdAt?.toDate?.() || transaction.createdAt), 'dd MMM yyyy • HH:mm', { locale: id })}
-                    </p>
-                  </div>
+
                 </div>
               </div>
             </div>
