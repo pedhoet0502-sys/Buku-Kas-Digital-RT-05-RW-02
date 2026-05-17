@@ -135,34 +135,40 @@ export default function Dashboard({ transactions, communityData }: DashboardProp
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between">
           <div className="flex items-center gap-4 mb-2">
             <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
               <Wallet size={24} />
             </div>
-            <span className="text-sm font-medium text-gray-500">Saldo Periode Ini</span>
+            <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Saldo Periode Ini</span>
           </div>
-          <p className="text-2xl font-bold text-gray-900">{formatCurrency(balance)}</p>
+          <p className="text-2xl sm:text-3xl font-mono font-bold text-slate-900 tracking-tighter">
+            {formatCurrency(Math.abs(balance))}
+          </p>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between">
           <div className="flex items-center gap-4 mb-2">
             <div className="p-3 bg-green-50 text-green-600 rounded-xl">
               <TrendingUp size={24} />
             </div>
-            <span className="text-sm font-medium text-gray-500">Total Pemasukan</span>
+            <span className="text-xs font-black text-emerald-500 uppercase tracking-widest">Pemasukan</span>
           </div>
-          <p className="text-2xl font-bold text-green-600">+{formatCurrency(totalIncome)}</p>
+          <p className="text-2xl sm:text-3xl font-mono font-bold text-emerald-600 tracking-tighter">
+            {formatCurrency(totalIncome)}
+          </p>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between">
           <div className="flex items-center gap-4 mb-2">
             <div className="p-3 bg-red-50 text-red-600 rounded-xl">
               <TrendingDown size={24} />
             </div>
-            <span className="text-sm font-medium text-gray-500">Total Pengeluaran</span>
+            <span className="text-xs font-black text-rose-500 uppercase tracking-widest">Pengeluaran</span>
           </div>
-          <p className="text-2xl font-bold text-red-600">-{formatCurrency(totalExpense)}</p>
+          <p className="text-2xl sm:text-3xl font-mono font-bold text-rose-600 tracking-tighter">
+            {formatCurrency(totalExpense)}
+          </p>
         </div>
       </div>
 

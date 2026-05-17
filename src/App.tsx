@@ -10,11 +10,13 @@ import Dashboard from './components/Dashboard';
 import TransactionList from './components/TransactionList';
 import TransactionForm from './components/TransactionForm';
 import Settings from './components/Settings';
+import SplashScreen from './components/SplashScreen';
 import { doc, getDoc } from 'firebase/firestore';
 import { DEFAULT_CATEGORIES } from './lib/constants';
 import { AnimatePresence } from 'motion/react';
 
 export default function App() {
+  const [showSplash, setShowSplash] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [transactions, setTransactions] = useState<any[]>([]);
@@ -179,6 +181,10 @@ export default function App() {
 
     return () => unsubscribe();
   }, [user, notificationsEnabled, communityId]);
+
+  if (showSplash) {
+    return <SplashScreen onComplete={() => setShowSplash(false)} />;
+  }
 
   if (loading) {
     return (

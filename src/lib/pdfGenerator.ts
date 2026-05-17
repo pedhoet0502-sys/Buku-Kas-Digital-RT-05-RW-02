@@ -44,7 +44,7 @@ export const getMonthlyReportPdf = (transactions: any[], communityData?: any, pe
         description: t.description || t.category || '-',
         income: t.type === 'income' ? formatCurrency(t.amount).replace('Rp', '').trim() : '-',
         expense: t.type === 'expense' ? formatCurrency(t.amount).replace('Rp', '').trim() : '-',
-        balance: formatCurrency(runningBalance).replace('Rp', '').trim()
+        balance: formatCurrency(Math.abs(runningBalance)).replace('Rp', '').trim()
       };
     })
     .map((r) => [

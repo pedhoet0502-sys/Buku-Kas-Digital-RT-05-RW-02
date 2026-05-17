@@ -112,14 +112,14 @@ export default function ReportPreview({ transactions, communityData, period, onC
                             <td className="p-1 px-2 border border-slate-200 font-medium text-slate-700">
                               {t.description || t.category || '-'}
                             </td>
-                            <td className="p-1 px-2 border border-slate-200 text-right text-emerald-600 font-bold">
+                            <td className="p-1 px-2 border border-slate-200 text-right text-emerald-600 font-mono font-bold">
                               {t.type === 'income' ? formatCurrency(t.amount).replace('Rp', '').trim() : '-'}
                             </td>
-                            <td className="p-1 px-2 border border-slate-200 text-right text-rose-600 font-bold">
+                            <td className="p-1 px-2 border border-slate-200 text-right text-rose-600 font-mono font-bold">
                               {t.type === 'expense' ? formatCurrency(t.amount).replace('Rp', '').trim() : '-'}
                             </td>
-                            <td className="p-1 px-2 border border-slate-200 text-right font-black text-slate-900 bg-slate-50/30">
-                              {formatCurrency(t.currentBalance).replace('Rp', '').trim()}
+                            <td className="p-1 px-2 border border-slate-200 text-right font-mono font-black text-slate-900 bg-slate-50/30">
+                              {formatCurrency(Math.abs(t.currentBalance)).replace('Rp', '').trim()}
                             </td>
                           </tr>
                         ));

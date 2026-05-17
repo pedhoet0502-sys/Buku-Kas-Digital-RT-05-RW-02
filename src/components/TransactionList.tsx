@@ -1,8 +1,25 @@
 import React, { useState } from 'react';
 import { formatCurrency } from '@/src/lib/utils';
-import { ArrowUpRight, ArrowDownLeft, Calendar, Tag, Search, User, SlidersHorizontal, RotateCcw, Info, TrendingUp, TrendingDown, Cloud } from 'lucide-react';
+import { 
+  ArrowUpRight, 
+  ArrowDownLeft, 
+  Calendar, 
+  Tag, 
+  Search, 
+  User, 
+  SlidersHorizontal, 
+  RotateCcw, 
+  Info, 
+  TrendingUp, 
+  TrendingDown, 
+  Cloud,
+  ChevronRight,
+  Filter,
+  FileText
+} from 'lucide-react';
 import { format, isToday, isYesterday } from 'date-fns';
 import { id } from 'date-fns/locale';
+import { motion, AnimatePresence } from 'motion/react';
 import TransactionDetail from './TransactionDetail';
 
 interface TransactionListProps {
@@ -111,265 +128,302 @@ export default function TransactionList({ transactions, customCategories, curren
 
   return (
     <>
-      <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
-        <div className="p-6 border-b border-gray-50 flex flex-col gap-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex flex-col">
-              <div className="flex items-center gap-2">
-                <h3 className="text-xl font-black text-gray-900 tracking-tight">Riwayat Kas</h3>
-                <div className="flex items-center gap-1.5 px-2 py-1 bg-emerald-50 rounded-full border border-emerald-100/50">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden"
+      >
+        <div className="p-8 border-b border-slate-50 flex flex-col gap-8">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-3">
+                <h3 className="text-2xl font-black text-slate-900 tracking-tight">Riwayat Transaksi</h3>
+                <div className="flex items-center gap-2 px-3 py-1 bg-emerald-50 rounded-full border border-emerald-100">
                   <div className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                   </div>
-                  <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Cloud Connected</span>
-                  <Cloud size={10} className="text-emerald-500" />
+                  <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest leading-none">Sinkron Jaringan</span>
                 </div>
               </div>
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1 flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
-                {filteredTransactions.length} Transaksi Tercatat
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-sm shadow-indigo-200"></span>
+                Total Transaksi: <span className="text-slate-900 font-black">{filteredTransactions.length} Entri</span>
               </p>
             </div>
             
-            <div className="flex items-center gap-2">
-              <div className="relative flex-1 md:flex-none group">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-500 transition-colors" size={16} />
+            <div className="flex items-center gap-2 w-full lg:w-auto max-w-2xl">
+              <div className="relative group flex-1">
+                <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={16} />
                 <input
                   type="text"
                   placeholder="Cari transaksi..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full md:w-64 pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-medium focus:ring-4 focus:ring-indigo-500/10 focus:bg-white focus:border-indigo-400 outline-none transition-all placeholder:text-gray-400"
+                  className="w-full pl-12 pr-6 py-3.5 bg-slate-50 border-2 border-slate-50 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-indigo-500/5 focus:bg-white focus:border-indigo-100 outline-none transition-all placeholder:text-slate-300 shadow-inner"
                 />
               </div>
 
-              <div className="flex items-center gap-1.5 p-1 bg-gray-50 rounded-2xl border border-gray-100">
-                <button 
+              <div className="flex items-center gap-2 shrink-0">
+                <motion.button 
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => setShowFilters(!showFilters)}
                   className={cn(
-                    "p-2 rounded-xl transition-all shrink-0 flex items-center justify-center",
+                    "p-3.5 rounded-2xl transition-all flex items-center justify-center border-2",
                     showFilters || isFilterActive 
-                      ? "text-indigo-600 bg-white shadow-sm ring-1 ring-black/5" 
-                      : "text-gray-500 hover:text-gray-900"
+                      ? "text-indigo-600 bg-white border-indigo-100 shadow-xl shadow-indigo-100/50" 
+                      : "text-slate-400 bg-slate-50 border-transparent hover:text-slate-900"
                   )}
-                  title="Filter Transaksi"
                 >
-                  <SlidersHorizontal size={18} />
-                </button>
+                  <Filter size={18} />
+                </motion.button>
 
-                <button 
+                <motion.button 
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={handleResetAll}
                   disabled={isRefreshing}
                   className={cn(
-                    "p-2 rounded-xl transition-all shrink-0 flex items-center justify-center",
-                    isRefreshing
-                      ? "text-indigo-500 animate-spin" 
-                      : "text-gray-500 hover:text-gray-900"
+                    "p-3.5 rounded-2xl transition-all flex items-center justify-center bg-slate-50 border-2 border-transparent",
+                    isRefreshing ? "text-indigo-500" : "text-slate-400 hover:text-slate-900"
                   )}
-                  title="Reset Filter"
                 >
-                  <RotateCcw size={18} />
-                </button>
+                  <RotateCcw size={18} className={cn(isRefreshing && "animate-spin")} />
+                </motion.button>
               </div>
             </div>
           </div>
 
-          {/* Quick Summary Bar */}
-          {isAnyFilterActive && (
-            <div className="grid grid-cols-2 gap-4 p-4 bg-indigo-50/30 rounded-3xl border border-indigo-100/50">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-white rounded-2xl flex items-center justify-center text-emerald-600 shadow-sm border border-emerald-50">
-                  <TrendingUp size={20} />
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Pemasukan</span>
-                  <span className="text-base font-black text-emerald-600 tracking-tight">{formatCurrency(filteredTotals.income)}</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 border-l border-indigo-100/50 pl-4">
-                <div className="w-10 h-10 bg-white rounded-2xl flex items-center justify-center text-rose-600 shadow-sm border border-rose-50">
-                  <TrendingDown size={20} />
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Pengeluaran</span>
-                  <span className="text-base font-black text-rose-600 tracking-tight">{formatCurrency(filteredTotals.expense)}</span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {showFilters && (
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-2 animate-in fade-in slide-in-from-top-4 duration-500">
-              {/* Tanggal (Date Picker) */}
-              {(!filterMonth && !filterYear) && (
-                <div className="flex-1 group">
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Pilih Tanggal</label>
-                  <div className="relative">
-                    <Calendar size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-500 pointer-events-none" />
-                    <input
-                      type="date"
-                      defaultValue={new Date().toISOString().split('T')[0]}
-                      className="w-full text-sm font-bold bg-gray-50 border border-gray-200 rounded-2xl pl-12 pr-4 py-3 outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-400 appearance-none transition-all cursor-pointer hover:bg-white uppercase"
-                      onChange={(e) => {
-                        if (e.target.value) {
-                          const date = new Date(e.target.value);
-                          setFilterDay(date.getDate().toString());
-                          setFilterMonth((date.getMonth() + 1).toString());
-                          setFilterYear(date.getFullYear().toString());
-                        } else {
-                          setFilterDay('');
-                        }
-                      }}
-                    />
+          <AnimatePresence>
+            {isAnyFilterActive && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-6 bg-slate-900 rounded-[2rem] text-white">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-emerald-400 backdrop-blur-md">
+                      <TrendingUp size={24} />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-1">Pemasukan</p>
+                      <p className="text-xl sm:text-2xl font-mono font-bold tracking-tighter text-emerald-400">{formatCurrency(filteredTotals.income)}</p>
+                    </div>
                   </div>
-                </div>
-              )}
-
-              {/* Bulan Filter */}
-              {(!filterDay && !filterYear) && (
-                <div className="flex-1 group">
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Pilih Bulan</label>
-                  <div className="relative">
-                    <select
-                      value={filterMonth}
-                      onChange={(e) => setFilterMonth(e.target.value)}
-                      className="w-full text-sm font-bold bg-gray-50 border border-gray-200 rounded-2xl pl-4 pr-10 py-3 outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-400 appearance-none transition-all cursor-pointer hover:bg-white"
-                    >
-                      <option value="">Semua Bulan</option>
-                      {months.map(month => (
-                        <option key={month.value} value={month.value}>{month.label}</option>
-                      ))}
-                    </select>
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 group-hover:text-indigo-500">
-                      <Calendar size={14} />
+                  <div className="flex items-center gap-4 sm:border-l sm:border-white/10 sm:pl-8">
+                    <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-rose-400 backdrop-blur-md">
+                      <TrendingDown size={24} />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1">Pengeluaran</p>
+                      <p className="text-xl sm:text-2xl font-mono font-bold tracking-tighter text-rose-400">{formatCurrency(filteredTotals.expense)}</p>
                     </div>
                   </div>
                 </div>
-              )}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-              {/* Tahun Filter */}
-              {(!filterDay && !filterMonth) && (
-                <div className="flex-1 group">
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Pilih Tahun</label>
-                  <div className="relative">
-                    <select
-                      value={filterYear}
-                      onChange={(e) => setFilterYear(e.target.value)}
-                      className="w-full text-sm font-bold bg-gray-50 border border-gray-200 rounded-2xl pl-4 pr-10 py-3 outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-400 appearance-none transition-all cursor-pointer hover:bg-white"
-                    >
-                      <option value="">Semua Tahun</option>
-                      {years.map(year => (
-                        <option key={year} value={year.toString()}>{year}</option>
-                      ))}
-                    </select>
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 group-hover:text-indigo-500">
-                      <Calendar size={14} />
+          <AnimatePresence>
+            {showFilters && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="flex flex-col sm:flex-row items-end gap-6 pt-2">
+                  {(!filterMonth && !filterYear) && (
+                    <div className="flex-1 w-full space-y-2">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
+                        <Calendar size={12} className="text-indigo-500" />
+                        Perspektif Harian
+                      </label>
+                      <input
+                        type="date"
+                        className="w-full text-sm font-bold bg-slate-50 border-2 border-slate-50 rounded-[1.5rem] px-6 py-4 outline-none focus:ring-4 focus:ring-indigo-500/5 focus:bg-white focus:border-indigo-100 transition-all cursor-pointer uppercase tracking-widest"
+                        onChange={(e) => {
+                          if (e.target.value) {
+                            const date = new Date(e.target.value);
+                            setFilterDay(date.getDate().toString());
+                            setFilterMonth((date.getMonth() + 1).toString());
+                            setFilterYear(date.getFullYear().toString());
+                          } else {
+                            setFilterDay('');
+                          }
+                        }}
+                      />
                     </div>
-                  </div>
+                  )}
+
+                  {(!filterDay && !filterYear) && (
+                    <div className="flex-1 w-full space-y-2">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Perspektif Bulanan</label>
+                      <div className="relative">
+                        <select
+                          value={filterMonth}
+                          onChange={(e) => setFilterMonth(e.target.value)}
+                          className="w-full text-sm font-bold bg-slate-50 border-2 border-slate-50 rounded-[1.5rem] px-6 py-4 appearance-none outline-none focus:bg-white focus:border-indigo-100 transition-all cursor-pointer"
+                        >
+                          <option value="">Seluruh Bulan</option>
+                          {months.map(month => (
+                            <option key={month.value} value={month.value}>{month.label}</option>
+                          ))}
+                        </select>
+                        <ChevronRight className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-300 rotate-90 pointer-events-none" size={16} />
+                      </div>
+                    </div>
+                  )}
+
+                  {(!filterDay && !filterMonth) && (
+                    <div className="flex-1 w-full space-y-2">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Perspektif Tahunan</label>
+                      <div className="relative">
+                        <select
+                          value={filterYear}
+                          onChange={(e) => setFilterYear(e.target.value)}
+                          className="w-full text-sm font-bold bg-slate-50 border-2 border-slate-50 rounded-[1.5rem] px-6 py-4 appearance-none outline-none focus:bg-white focus:border-indigo-100 transition-all cursor-pointer"
+                        >
+                          <option value="">Seluruh Tahun</option>
+                          {years.map(year => (
+                            <option key={year} value={year.toString()}>{year}</option>
+                          ))}
+                        </select>
+                        <ChevronRight className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-300 rotate-90 pointer-events-none" size={16} />
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
-        <div className="bg-gray-50/30">
+        <div className="bg-slate-50/50">
           {sortedTransactions.length > 0 ? (
             <div className="flex flex-col">
-              {Object.entries(groupedTransactions).map(([dateKey, transactions]) => (
+              {Object.entries(groupedTransactions).map(([dateKey, transactions], groupIndex) => (
                 <div key={dateKey} className="flex flex-col">
-                  {/* Date Header: Restore chronologial grouping for better info */}
-                  <div className="px-6 py-3 bg-gray-50/50 backdrop-blur-sm border-y border-gray-100 flex items-center justify-between sticky top-0 z-10">
-                    <span className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.2em] flex items-center gap-2">
-                      <Calendar size={12} strokeWidth={3} />
-                      {getRelativeDateLabel(dateKey)}
-                    </span>
-                    <span className="text-[11px] font-bold text-gray-400">
+                  <div className="px-8 py-4 bg-white/5 shadow-sm border-y border-slate-100 flex items-center justify-between sticky top-0 z-10 backdrop-blur-xl">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 shadow-inner">
+                        <Calendar size={14} strokeWidth={3} />
+                      </div>
+                      <span className="text-[11px] font-black text-slate-900 uppercase tracking-[0.25em]">
+                        {getRelativeDateLabel(dateKey)}
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                       {transactions.length} Entri
                     </span>
                   </div>
 
-                  <div className="divide-y divide-gray-50 bg-white">
-                    {transactions.map((t) => (
-                      <div 
+                  <div className="divide-y divide-slate-100 bg-white">
+                    {transactions.map((t, idx) => (
+                      <motion.div 
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: (groupIndex * 0.1) + (idx * 0.05) }}
                         key={t.id} 
                         onClick={() => setSelectedTransaction(t)}
-                        className="px-6 py-5 hover:bg-indigo-50/30 transition-all flex items-center gap-5 cursor-pointer group relative overflow-hidden select-none active:scale-[0.99]"
+                        className="px-8 py-6 hover:bg-slate-50 transition-all flex items-center gap-6 cursor-pointer group relative overflow-hidden active:scale-[0.995]"
                       >
-                        {/* Hover accent */}
-                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-indigo-500 scale-y-0 group-hover:scale-y-100 transition-transform origin-top duration-300"></div>
+                        <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-indigo-500 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300"></div>
 
                         <div className={cn(
-                          "w-14 h-14 rounded-2xl shrink-0 flex items-center justify-center transition-all group-hover:scale-110 group-hover:rotate-3 shadow-sm",
+                          "w-16 h-16 rounded-[1.5rem] shrink-0 flex flex-col items-center justify-center transition-all group-hover:scale-105 group-hover:-rotate-2 shadow-sm border-2",
                           t.type === 'income' 
-                            ? "bg-emerald-50 text-emerald-600 border border-emerald-100" 
-                            : "bg-rose-50 text-rose-600 border border-rose-100"
+                            ? "bg-emerald-50 text-emerald-600 border-emerald-100" 
+                            : "bg-rose-50 text-rose-600 border-rose-100"
                         )}>
-                          {t.type === 'income' ? <ArrowUpRight size={24} strokeWidth={2.5} /> : <ArrowDownLeft size={24} strokeWidth={2.5} />}
+                          {t.type === 'income' ? <ArrowUpRight size={28} strokeWidth={2.5} /> : <ArrowDownLeft size={28} strokeWidth={2.5} />}
                         </div>
                         
                         <div className="flex-1 min-w-0">
-                          <div className="flex justify-between items-start mb-2">
-                            <div className="flex flex-col">
-                              <p className="font-extrabold text-gray-900 tracking-tight text-base group-hover:text-indigo-600 transition-colors">{t.category}</p>
-                              {t.description && (
-                                <p className="text-xs text-gray-500 font-medium mt-0.5 line-clamp-1">
-                                  {t.description}
-                                </p>
-                              )}
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2">
+                                <h4 className="font-black text-slate-900 tracking-tight text-lg group-hover:text-indigo-600 transition-colors">{t.category}</h4>
+                                <div className={cn(
+                                  "p-1 px-2 rounded-lg text-[9px] font-extrabold uppercase tracking-widest border",
+                                  t.type === 'income' 
+                                    ? "bg-emerald-50 text-emerald-600 border-emerald-100" 
+                                    : "bg-rose-50 text-rose-600 border-rose-100"
+                                )}>
+                                  {t.type === 'income' ? 'Pemasukan' : 'Pengeluaran'}
+                                </div>
+                              </div>
+                              <p className="text-sm text-slate-500 font-medium line-clamp-1 italic pr-4">
+                                "{t.description || 'Tanpa deskripsi tambahan'}"
+                              </p>
                             </div>
-                            <div className="flex flex-col items-end">
+                            
+                            <div className="flex flex-col items-start sm:items-end">
                               <p className={cn(
-                                "font-black text-lg tracking-tighter leading-none mb-1",
+                                "font-mono font-bold text-xl sm:text-2xl tracking-tighter leading-none mb-1 text-right",
                                 t.type === 'income' ? "text-emerald-600" : "text-rose-600"
                               )}>
-                                {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount)}
+                                {formatCurrency(t.amount)}
                               </p>
-                              <div className="flex items-center gap-1">
-                                <span className="text-[10px] font-black text-gray-300 uppercase tracking-tighter">IDR</span>
+                              <div className="flex items-center gap-1.5 text-slate-300">
+                                {/* Verified status hidden */}
                               </div>
                             </div>
                           </div>
                           
-                          <div className="flex items-center gap-3">
-                            <div className="flex items-center gap-2 py-1.5 px-3 bg-gray-50 rounded-xl border border-gray-100 group-hover:bg-white group-hover:border-gray-200 transition-all">
-                              <div className="w-5 h-5 rounded-full bg-white flex items-center justify-center text-indigo-500 shadow-sm border border-indigo-50">
-                                <User size={10} strokeWidth={3} />
+                          <div className="mt-4 flex flex-wrap items-center gap-3">
+                            <div className="flex items-center gap-2.5 py-2 px-4 bg-slate-50 border border-slate-100 rounded-2xl group-hover:bg-white group-hover:border-slate-200 transition-all">
+                              <div className="w-6 h-6 rounded-xl bg-white shadow-sm flex items-center justify-center text-indigo-500 border border-indigo-50">
+                                <User size={12} strokeWidth={3} />
                               </div>
-                              <span className="text-[11px] font-bold text-gray-700">
-                                {t.userName || 'Pengurus'}
-                              </span>
-                              {(t.userTitle || memberTitles?.[t.userId]) && (
-                                <span className="text-[9px] font-black text-white bg-indigo-500 px-2 py-0.5 rounded-md uppercase tracking-[0.05em] ml-0.5">
-                                  {t.userTitle || memberTitles?.[t.userId]}
+                              <div className="flex items-center gap-2">
+                                <span className="text-[11px] font-black text-slate-700 tracking-tight">
+                                  {t.userName || 'System Auto'}
                                 </span>
-                              )}
+                                {(t.userTitle || memberTitles?.[t.userId]) && (
+                                  <span className="text-[9px] font-black text-white bg-slate-900 px-2.5 py-1 rounded-lg uppercase tracking-widest shadow-lg shadow-slate-200">
+                                    {t.userTitle || memberTitles?.[t.userId]}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            
+                            <div className="hidden group-hover:flex items-center gap-2 text-indigo-600 animate-in slide-in-from-left-2 duration-300">
+                              <span className="text-[10px] font-black uppercase tracking-widest">Detail Node</span>
+                              <ChevronRight size={14} />
                             </div>
                           </div>
                         </div>
-                      </div>
+                      </motion.div>
                     ))}
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="p-20 flex flex-col items-center justify-center text-center">
-              <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center text-gray-300 mb-4 border border-gray-100">
-                <Search size={40} strokeWidth={1} />
+            <div className="py-24 flex flex-col items-center justify-center text-center">
+              <div className="w-24 h-24 bg-slate-50 rounded-[2.5rem] flex items-center justify-center text-slate-200 mb-6 border-2 border-slate-100 shadow-inner">
+                <Search size={44} strokeWidth={1} />
               </div>
-              <p className="text-gray-900 font-bold mb-1">Transaksi Tidak Ditemukan</p>
-              <p className="text-sm text-gray-500">Coba ubah kata kunci atau bersihkan filter pencarian.</p>
-              <button 
+              <h4 className="text-slate-900 font-black text-xl tracking-tight mb-2">Data Tidak Ditemukan</h4>
+              <p className="text-sm text-slate-400 font-medium max-w-xs mx-auto mb-8 uppercase tracking-widest">
+                Node kami tidak menemukan kecocokan untuk parameter pencarian Anda.
+              </p>
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={handleResetAll}
-                className="mt-6 text-xs font-black text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-6 py-2.5 rounded-2xl uppercase tracking-widest transition-all"
+                className="text-xs font-black text-indigo-600 bg-white border-2 border-indigo-100 px-10 py-4 rounded-[1.5rem] uppercase tracking-[0.2em] shadow-xl shadow-indigo-100/50 transition-all"
               >
-                Reset Filter
-              </button>
+                Reset Semua Filter
+              </motion.button>
             </div>
           )}
         </div>
-      </div>
+      </motion.div>
 
       {selectedTransaction && (
         <TransactionDetail 

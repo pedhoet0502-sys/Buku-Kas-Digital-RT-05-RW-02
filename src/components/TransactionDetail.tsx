@@ -1,12 +1,29 @@
 import React, { useState } from 'react';
 import { formatCurrency } from '@/src/lib/utils';
-import { X, Calendar, Info, User, TrendingUp, TrendingDown, Edit2, Save, Trash2 } from 'lucide-react';
+import { 
+  X, 
+  Calendar, 
+  Info, 
+  User, 
+  TrendingUp, 
+  TrendingDown, 
+  Edit2, 
+  Save, 
+  Trash2,
+  Clock,
+  Fingerprint,
+  FileText,
+  ChevronRight,
+  CalendarClock
+} from 'lucide-react';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
+import { motion, AnimatePresence } from 'motion/react';
 import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db, auth } from '@/src/lib/firebase';
 import { handleFirestoreError, OperationType } from '@/src/lib/firestoreErrorHandler';
 import { cn } from '@/src/lib/utils';
+import ConfirmModal from './ConfirmModal';
 
 interface TransactionDetailProps {
   transaction: any;
@@ -16,8 +33,6 @@ interface TransactionDetailProps {
   currentRole?: 'admin' | 'viewer' | null;
   memberTitles?: {[key: string]: string};
 }
-
-import ConfirmModal from './ConfirmModal';
 
 export default function TransactionDetail({ transaction, onClose, customCategories, currentCommunityId, currentRole, memberTitles }: TransactionDetailProps) {
   const categories = customCategories || {
@@ -87,209 +102,303 @@ export default function TransactionDetail({ transaction, onClose, customCategori
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
       <ConfirmModal 
         isOpen={showConfirmDelete}
         onClose={() => setShowConfirmDelete(false)}
         onConfirm={handleDelete}
-        title="Hapus Transaksi?"
-        message="Tindakan ini tidak dapat dibatalkan. Riwayat saldo akan disesuaikan secara otomatis."
+        title="Konfirmasi Penghapusan?"
+        message="Data ini akan dihapus secara permanen dari server Cloud RT Digital. Seluruh log transaksi terkait akan disesuaikan secara real-time."
         loading={loading}
       />
-      <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-        <div className="p-6 flex justify-between items-center border-b border-gray-100">
-          <h2 className="text-xl font-bold text-gray-900">
-            {isEditing ? 'Ubah Transaksi' : 'Detail Transaksi'}
-          </h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-full transition-colors">
-            <X size={24} />
-          </button>
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95, y: 100 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        className="bg-white rounded-t-[3rem] sm:rounded-[3rem] w-full max-w-2xl shadow-2xl overflow-hidden border-t sm:border border-slate-100 flex flex-col max-h-[90vh]"
+      >
+        <div className="p-10 flex justify-between items-start border-b border-slate-50 bg-slate-50/30">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-lg shadow-indigo-200"></div>
+              <h5 className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.3em] leading-none">Dokumen Transaksi</h5>
+            </div>
+            <h2 className="text-3xl font-black text-slate-900 tracking-tight">
+              {isEditing ? 'Revisi Transaksi' : 'Detail Transaksi'}
+            </h2>
+          </div>
+          <motion.button 
+            whileHover={{ scale: 1.1, rotate: 90 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={onClose} 
+            className="text-slate-400 hover:text-slate-900 p-3 hover:bg-slate-100/50 rounded-2xl transition-all"
+          >
+            <X size={28} />
+          </motion.button>
         </div>
 
-        {isEditing ? (
-          <form onSubmit={handleUpdate} className="p-6 space-y-4">
-            <div className="flex p-1 bg-gray-100 rounded-lg">
-              <button
-                type="button"
-                onClick={() => { setType('income'); setCategory(categories.income[0]); }}
-                className={cn(
-                  "flex-1 py-2 text-sm font-medium rounded-md transition-all",
-                  type === 'income' ? "bg-white text-green-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
-                )}
-              >
-                Pemasukan
-              </button>
-              <button
-                type="button"
-                onClick={() => { setType('expense'); setCategory(categories.expense[0]); }}
-                className={cn(
-                  "flex-1 py-2 text-sm font-medium rounded-md transition-all",
-                  type === 'expense' ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
-                )}
-              >
-                Pengeluaran
-              </button>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nominal (Rp)</label>
-              <input
-                type="number"
-                required
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-              >
-                {categories[type].map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Tanggal</label>
-              <input
-                type="date"
-                required
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Keterangan</label>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none h-20 resize-none"
-              />
-            </div>
-
-            <div className="flex gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => setIsEditing(false)}
-                className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-all"
-              >
-                Batal
-              </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="flex-[2] py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg flex items-center justify-center gap-2"
-              >
-                {loading ? 'Menyimpan...' : <><Save size={18} /> Simpan Perubahan</>}
-              </button>
-            </div>
-          </form>
-        ) : (
-          <>
-            <div className="p-6 space-y-6">
-              <div className="text-center pb-6 border-b border-gray-100">
-                <div className={`w-16 h-16 rounded-2xl mx-auto flex items-center justify-center mb-4 ${
-                  transaction.type === 'income' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'
-                }`}>
-                  {transaction.type === 'income' ? <TrendingUp size={32} /> : <TrendingDown size={32} />}
-                </div>
-                <p className={`text-3xl font-black ${
-                  transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
-                }`}>
-                  {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
-                </p>
-                <p className="text-gray-500 font-medium mt-1">{transaction.category}</p>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-start gap-4">
-                  <div className="p-2 bg-gray-50 text-gray-400 rounded-lg">
-                    <Calendar size={18} />
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-0.5">Tanggal</p>
-                    <p className="text-gray-900 font-semibold">
-                      {format(new Date(transaction.date), 'EEEE, dd MMMM yyyy', { locale: id })}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4">
-                  <div className="p-2 bg-gray-50 text-gray-400 rounded-lg">
-                    <Info size={18} />
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-0.5">Keterangan</p>
-                    <p className="text-gray-900 font-semibold leading-relaxed">
-                      {transaction.description || '-'}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4">
-                  <div className="p-2 bg-gray-50 text-gray-400 rounded-lg">
-                    <User size={18} />
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-0.5">Dicatat Oleh</p>
-                    <p className="text-gray-900 font-semibold flex items-center gap-2">
-                      {transaction.userName || 'Pengurus Digital'}
-                      {(transaction.userTitle || memberTitles?.[transaction.userId]) && (
-                        <span className="text-[10px] font-black text-white bg-indigo-600 px-2.5 py-1 rounded-lg uppercase tracking-wider shadow-sm shadow-indigo-100">
-                          {transaction.userTitle || memberTitles?.[transaction.userId]}
-                        </span>
-                      )}
-                    </p>
-                    <p className="text-[10px] text-gray-400 mt-1">
-                      ID: {transaction.userId.substring(0, 8)}...
-                    </p>
-                    <p className="text-[10px] text-gray-400 mt-0.5">
-                      Dibuat pada: {format(new Date(transaction.createdAt?.toDate?.() || transaction.createdAt), 'dd MMMM yyyy, HH:mm', { locale: id })}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="p-6 bg-gray-50 flex gap-3">
-              {canEdit && (
-                <>
-                  <button
-                    onClick={() => setShowConfirmDelete(true)}
-                    disabled={loading}
-                    className="p-3 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-all flex items-center justify-center"
-                    title="Hapus"
-                  >
-                    <Trash2 size={20} />
-                  </button>
-                  <button
-                    onClick={() => setIsEditing(true)}
-                    className="flex-1 py-3 bg-white border border-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-100 transition-all flex items-center justify-center gap-2"
-                  >
-                    <Edit2 size={18} /> Edit
-                  </button>
-                </>
-              )}
-              {!canEdit && (
+        <div className="flex-1 overflow-y-auto">
+          {isEditing ? (
+            <form onSubmit={handleUpdate} className="p-10 space-y-8">
+              <div className="grid grid-cols-2 p-2 bg-slate-100 rounded-3xl gap-2">
                 <button
-                  onClick={onClose}
-                  className="flex-1 py-3 bg-white border border-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-100 transition-all"
+                  type="button"
+                  onClick={() => { setType('income'); setCategory(categories.income[0]); }}
+                  className={cn(
+                    "py-4 text-xs font-black uppercase tracking-widest rounded-2xl transition-all",
+                    type === 'income' ? "bg-white text-emerald-600 shadow-xl" : "text-slate-500 hover:text-slate-700"
+                  )}
                 >
-                  Tutup
+                  Pemasukan
                 </button>
-              )}
+                <button
+                  type="button"
+                  onClick={() => { setType('expense'); setCategory(categories.expense[0]); }}
+                  className={cn(
+                    "py-4 text-xs font-black uppercase tracking-widest rounded-2xl transition-all",
+                    type === 'expense' ? "bg-white text-rose-600 shadow-xl" : "text-slate-500 hover:text-slate-700"
+                  )}
+                >
+                  Pengeluaran
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block ml-1">Nominal Transaksi (IDR)</label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        required
+                        value={amount}
+                        onChange={(e) => setAmount(e.target.value)}
+                        placeholder="0"
+                        className="w-full px-8 py-5 bg-slate-50 border-2 border-slate-50 rounded-[2rem] focus:ring-4 focus:ring-indigo-500/5 focus:bg-white focus:border-indigo-100 text-2xl font-mono font-bold text-slate-900 outline-none transition-all tracking-tighter"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block ml-1">Kategorisasi</label>
+                    <div className="relative">
+                      <select
+                        value={category}
+                        onChange={(e) => setCategory(e.target.value)}
+                        className="w-full px-8 py-5 bg-slate-50 border-2 border-slate-50 rounded-[2rem] focus:ring-4 focus:ring-indigo-500/5 focus:bg-white focus:border-indigo-100 text-sm font-black text-slate-900 outline-none transition-all appearance-none"
+                      >
+                        {categories[type].map(cat => (
+                          <option key={cat} value={cat}>{cat}</option>
+                        ))}
+                      </select>
+                      <ChevronRight className="absolute right-8 top-1/2 -translate-y-1/2 text-slate-300 rotate-90 pointer-events-none" size={18} />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block ml-1">Hari, tanggal</label>
+                    <input
+                      type="date"
+                      required
+                      value={date}
+                      onChange={(e) => setDate(e.target.value)}
+                      className="w-full px-8 py-5 bg-slate-50 border-2 border-slate-50 rounded-[2rem] focus:ring-4 focus:ring-indigo-500/5 focus:bg-white focus:border-indigo-100 text-sm font-black text-slate-900 outline-none transition-all uppercase tracking-[0.2em]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block ml-1">Uraian transaksi</label>
+                    <textarea
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="Detail penggunaan dana..."
+                      className="w-full px-8 py-5 bg-slate-50 border-2 border-slate-50 rounded-[2rem] focus:ring-4 focus:ring-indigo-500/5 focus:bg-white focus:border-indigo-100 text-sm font-bold text-slate-700 outline-none transition-all h-[120px] resize-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-4 pt-6">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  type="button"
+                  onClick={() => setIsEditing(false)}
+                  className="flex-1 py-5 bg-slate-100 text-slate-600 rounded-[2rem] font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-all"
+                >
+                  Batalkan Revisi
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  type="submit"
+                  disabled={loading}
+                  className="flex-[2] py-5 bg-slate-900 text-white rounded-[2rem] font-black text-xs uppercase tracking-widest hover:bg-black transition-all shadow-xl shadow-slate-200 flex items-center justify-center gap-3 disabled:opacity-50"
+                >
+                  {loading ? 'Processing Node...' : <><Save size={18} /> Simpan Perubahan</>}
+                </motion.button>
+              </div>
+            </form>
+          ) : (
+            <div className="p-10 space-y-12">
+              <div className="text-center py-12 bg-slate-50 rounded-[3rem] border border-slate-100 relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-8 opacity-[0.03] rotate-12">
+                  <FileText size={160} />
+                </div>
+                
+                <div className={cn(
+                  "w-14 h-14 rounded-[1.5rem] mx-auto flex items-center justify-center mb-4 shadow-xl",
+                  transaction.type === 'income' 
+                    ? "bg-emerald-500 text-white shadow-emerald-200" 
+                    : "bg-rose-500 text-white shadow-rose-200"
+                )}>
+                  {transaction.type === 'income' ? <TrendingUp size={24} /> : <TrendingDown size={24} />}
+                </div>
+                
+                <p className={cn(
+                  "text-3xl sm:text-4xl font-mono font-bold tracking-tighter mb-2",
+                  transaction.type === 'income' ? "text-emerald-600" : "text-rose-600"
+                )}>
+                  {formatCurrency(transaction.amount)}
+                </p>
+                <div className="inline-flex items-center gap-3 px-6 py-2 bg-white rounded-full shadow-sm border border-slate-100">
+                  <div className={cn(
+                    "w-2 h-2 rounded-full",
+                    transaction.type === 'income' ? "bg-emerald-500" : "bg-rose-500"
+                  )} />
+                  <span className={cn(
+                    "text-xs font-black uppercase tracking-widest",
+                    transaction.type === 'income' ? "text-emerald-600" : "text-rose-600"
+                  )}>
+                    {transaction.type === 'income' ? 'Pemasukan' : 'Pengeluaran'} • {transaction.category}
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <div className="space-y-8">
+                  <div className="flex gap-4">
+                    <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 border border-slate-100 shrink-0">
+                      <Calendar size={20} />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Hari, tanggal</p>
+                      <p className="text-slate-900 font-bold text-lg tracking-tight">
+                        {format(new Date(transaction.date), 'EEEE, dd MMMM yyyy', { locale: id })}
+                      </p>
+                      <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        <Clock size={10} />
+                        {transaction.createdAt ? format(new Date(transaction.createdAt?.toDate?.() || transaction.createdAt), 'HH:mm:ss') : '--:--:--'}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-4">
+                    <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 border border-slate-100 shrink-0">
+                      <Info size={20} />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Uraian transaksi</p>
+                      <p className="text-slate-700 font-bold leading-relaxed italic pr-4">
+                        "{transaction.description || 'Tidak ada uraian transaksi.'}"
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-8">
+                  <div className="flex gap-4">
+                    <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 border border-slate-100 shrink-0">
+                      <Fingerprint size={20} />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Identitas Operator</p>
+                      <div className="flex items-center gap-3">
+                        <p className="text-slate-900 font-bold text-lg tracking-tight">
+                          {transaction.userName || 'Root Admin'}
+                        </p>
+                        {(transaction.userTitle || memberTitles?.[transaction.userId]) && (
+                          <span className="text-[9px] font-black text-white bg-slate-900 px-3 py-1 rounded-lg uppercase tracking-widest">
+                            {transaction.userTitle || memberTitles?.[transaction.userId]}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-4">
+                    <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 border border-slate-100 shrink-0">
+                      <CalendarClock size={20} />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Data Entry</p>
+                      <p className="text-slate-900 font-bold text-lg tracking-tight">
+                        {transaction.createdAt 
+                          ? format(new Date(transaction.createdAt?.toDate?.() || transaction.createdAt), 'EEEE, dd MMMM yyyy • HH:mm', { locale: id })
+                          : 'Waktu input tidak tercatat'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="p-6 bg-indigo-900 rounded-[2rem] text-white space-y-4 relative overflow-hidden shadow-xl shadow-indigo-100">
+                    <div className="absolute -top-4 -right-4 w-20 h-20 bg-white/10 rounded-full blur-2xl" />
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-md">
+                        <Clock size={14} />
+                      </div>
+                      <p className="text-[10px] font-black uppercase tracking-widest">Sinkronisasi Jaringan</p>
+                    </div>
+                    <p className="text-[11px] font-bold text-indigo-100 leading-relaxed max-w-[200px]">
+                      Data ini telah diverifikasi dan diduplikasi ke node penyimpanan harian.
+                    </p>
+                    <p className="text-[10px] font-black text-indigo-300 uppercase tracking-widest pt-2 border-t border-white/10">
+                      {format(new Date(transaction.createdAt?.toDate?.() || transaction.createdAt), 'dd MMM yyyy • HH:mm', { locale: id })}
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
-          </>
-        )}
-      </div>
+          )}
+        </div>
+
+        <div className="p-8 sm:p-10 bg-white flex items-center justify-center gap-6 border-t border-slate-50">
+          {canEdit && !isEditing && (
+            <>
+              <motion.button
+                whileHover={{ scale: 1.1, backgroundColor: '#fff1f2' }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setShowConfirmDelete(true)}
+                disabled={loading}
+                title="Hapus Transaksi"
+                className="w-16 h-16 bg-rose-50/50 text-rose-500 rounded-2xl flex items-center justify-center transition-all border border-rose-100 shadow-sm"
+              >
+                <Trash2 size={24} />
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.1, backgroundColor: '#eef2ff' }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setIsEditing(true)}
+                title="Revisi Data"
+                className="w-16 h-16 bg-indigo-50/50 text-indigo-600 rounded-2xl flex items-center justify-center transition-all border border-indigo-100 shadow-sm"
+              >
+                <Edit2 size={24} />
+              </motion.button>
+            </>
+          )}
+          {!isEditing && (
+            <motion.button
+              whileHover={{ scale: 1.1, backgroundColor: '#f8fafc' }}
+              whileTap={{ scale: 0.9 }}
+              onClick={onClose}
+              title="Tutup"
+              className="w-16 h-16 bg-slate-50/50 text-slate-500 rounded-2xl flex items-center justify-center transition-all border border-slate-100 shadow-sm"
+            >
+              <X size={24} />
+            </motion.button>
+          )}
+        </div>
+      </motion.div>
     </div>
   );
 }

@@ -75,8 +75,8 @@ export default function TransactionForm({ onClose, customCategories, communityId
               type="button"
               onClick={() => { setType('income'); setCategory(categories.income[0] || ''); }}
               className={cn(
-                "flex-1 py-2 text-sm font-medium rounded-md transition-all",
-                type === 'income' ? "bg-white text-green-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                "flex-1 py-2 text-sm font-black uppercase tracking-widest rounded-md transition-all",
+                type === 'income' ? "bg-white text-green-600 shadow-sm" : "text-gray-400 hover:text-green-500"
               )}
             >
               Pemasukan
@@ -85,8 +85,8 @@ export default function TransactionForm({ onClose, customCategories, communityId
               type="button"
               onClick={() => { setType('expense'); setCategory(categories.expense[0] || ''); }}
               className={cn(
-                "flex-1 py-2 text-sm font-medium rounded-md transition-all",
-                type === 'expense' ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                "flex-1 py-2 text-sm font-black uppercase tracking-widest rounded-md transition-all",
+                type === 'expense' ? "bg-white text-red-600 shadow-sm" : "text-gray-400 hover:text-red-500"
               )}
             >
               Pengeluaran
@@ -94,19 +94,25 @@ export default function TransactionForm({ onClose, customCategories, communityId
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nominal (Rp)</label>
+            <label className={cn(
+              "block text-[10px] font-black uppercase tracking-widest mb-1 ml-1",
+              type === 'income' ? "text-green-600" : "text-red-600"
+            )}>Nominal (Rp)</label>
             <input
               type="number"
               required
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="0"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all font-mono font-bold text-lg tracking-tighter"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
+            <label className={cn(
+              "block text-[10px] font-black uppercase tracking-widest mb-1 ml-1",
+              type === 'income' ? "text-green-600" : "text-red-600"
+            )}>Kategori</label>
             {categories[type].length > 0 ? (
               <select
                 value={category}
@@ -128,7 +134,10 @@ export default function TransactionForm({ onClose, customCategories, communityId
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Tanggal</label>
+            <label className={cn(
+              "block text-[10px] font-black uppercase tracking-widest mb-1 ml-1",
+              type === 'income' ? "text-green-600" : "text-red-600"
+            )}>Tanggal</label>
             <input
               type="date"
               required
@@ -139,7 +148,10 @@ export default function TransactionForm({ onClose, customCategories, communityId
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Keterangan</label>
+            <label className={cn(
+              "block text-[10px] font-black uppercase tracking-widest mb-1 ml-1",
+              type === 'income' ? "text-green-600" : "text-red-600"
+            )}>Keterangan</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
