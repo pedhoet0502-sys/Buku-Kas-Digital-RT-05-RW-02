@@ -68,130 +68,118 @@ export default function Dashboard({ transactions, communityData }: DashboardProp
   return (
     <div className="space-y-6">
       {/* Filters */}
-      <div className="bg-white p-5 rounded-3xl shadow-sm border border-gray-100">
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-indigo-600 text-white rounded-2xl shadow-lg shadow-indigo-100">
-              <Filter size={20} />
+      <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+        <div className="space-y-6">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">Laporan Kas</h2>
+              <p className="text-sm text-gray-500 font-medium">{periodTitle}</p>
             </div>
-            <div className="space-y-0.5">
-              <h2 className="text-lg font-black text-slate-900 tracking-tight">Filter Laporan</h2>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{periodTitle}</p>
-            </div>
-          </div>
-          
-          <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-            <div className="relative flex-1 lg:flex-none lg:min-w-[180px]">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 p-1.5 bg-indigo-50 text-indigo-600 rounded-lg pointer-events-none">
-                <Calendar size={14} />
-              </div>
-              <select 
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
-                className="w-full pl-12 pr-10 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold text-slate-700 appearance-none outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all cursor-pointer"
-              >
-                <option value="all">Bulan</option>
-                {months.map((m, i) => (
-                  <option key={m} value={i}>{m}</option>
-                ))}
-              </select>
-              <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
-                <ChevronDown size={16} />
-              </div>
-            </div>
-
-            <div className="relative flex-1 lg:flex-none lg:min-w-[140px]">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 p-1.5 bg-indigo-50 text-indigo-600 rounded-lg pointer-events-none">
-                <Calendar size={14} strokeWidth={3} />
-              </div>
-              <select 
-                value={selectedYear}
-                onChange={(e) => setSelectedYear(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
-                className="w-full pl-12 pr-10 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold text-slate-700 appearance-none outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all cursor-pointer"
-              >
-                <option value="all">Tahun</option>
-                {years.map(y => (
-                  <option key={y} value={y}>{y}</option>
-                ))}
-              </select>
-              <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
-                <ChevronDown size={16} />
-              </div>
-            </div>
-
             <button 
               onClick={() => {
                 setSelectedMonth('all');
                 setSelectedYear('all');
               }}
-              className="p-3 bg-slate-50 text-slate-400 border border-slate-100 rounded-2xl hover:bg-slate-100 hover:text-slate-600 transition-all group"
+              className="p-2.5 bg-gray-50 border border-gray-100 text-blue-600 hover:bg-blue-50 rounded-xl transition-all active:scale-95"
               title="Reset Filter"
             >
-              <RotateCcw size={20} className="group-active:rotate-[-45deg] transition-transform" />
+              <RotateCcw size={20} />
             </button>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div className="relative group">
+              <select 
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
+                className="w-full pl-4 pr-10 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-gray-900 appearance-none outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500/30 transition-all cursor-pointer"
+              >
+                <option value="all">Pilih Bulan</option>
+                {months.map((m, i) => (
+                  <option key={m} value={i}>{m}</option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+            </div>
+
+            <div className="relative group">
+              <select 
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
+                className="w-full pl-4 pr-10 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-gray-900 appearance-none outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500/30 transition-all cursor-pointer"
+              >
+                <option value="all">Pilih Tahun</option>
+                {years.map(y => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+            </div>
           </div>
         </div>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between">
-          <div className="flex items-center gap-4 mb-2">
-            <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
-              <Wallet size={24} />
-            </div>
-            <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Saldo Periode Ini</span>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+          <div className="p-4 bg-indigo-50 text-indigo-600 rounded-xl">
+            <Wallet size={24} />
           </div>
-          <p className="text-2xl sm:text-3xl font-mono font-bold text-slate-900 tracking-tighter">
-            {formatCurrency(Math.abs(balance))}
-          </p>
+          <div>
+            <p className="text-sm text-gray-500 font-medium">Saldo Kas</p>
+            <p className="text-2xl font-bold text-gray-900">
+              {formatCurrency(balance)}
+            </p>
+          </div>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between">
-          <div className="flex items-center gap-4 mb-2">
-            <div className="p-3 bg-green-50 text-green-600 rounded-xl">
-              <TrendingUp size={24} />
-            </div>
-            <span className="text-xs font-black text-emerald-500 uppercase tracking-widest">Pemasukan</span>
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+          <div className="p-4 bg-green-50 text-green-600 rounded-xl">
+            <TrendingUp size={24} />
           </div>
-          <p className="text-2xl sm:text-3xl font-mono font-bold text-emerald-600 tracking-tighter">
-            {formatCurrency(totalIncome)}
-          </p>
+          <div>
+            <p className="text-sm text-gray-500 font-medium">Pemasukan</p>
+            <p className="text-2xl font-bold text-green-600">
+              {formatCurrency(totalIncome)}
+            </p>
+          </div>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between">
-          <div className="flex items-center gap-4 mb-2">
-            <div className="p-3 bg-red-50 text-red-600 rounded-xl">
-              <TrendingDown size={24} />
-            </div>
-            <span className="text-xs font-black text-rose-500 uppercase tracking-widest">Pengeluaran</span>
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+          <div className="p-4 bg-red-50 text-red-600 rounded-xl">
+            <TrendingDown size={24} />
           </div>
-          <p className="text-2xl sm:text-3xl font-mono font-bold text-rose-600 tracking-tighter">
-            {formatCurrency(totalExpense)}
-          </p>
+          <div>
+            <p className="text-sm text-gray-500 font-medium">Pengeluaran</p>
+            <p className="text-2xl font-bold text-red-600">
+              {formatCurrency(totalExpense)}
+            </p>
+          </div>
         </div>
       </div>
 
       {/* Chart */}
       <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-          <h3 className="text-lg font-black text-slate-900 tracking-tight">Grafik {periodTitle}</h3>
-          <div className="flex gap-2">
+          <div>
+            <h3 className="text-lg font-bold text-gray-900">Grafik Saldo</h3>
+          </div>
+          <div className="flex flex-row gap-2 w-full sm:w-auto">
             <button
               onClick={() => setShowPreview(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl font-bold hover:bg-indigo-100 transition-all text-sm"
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-xl font-bold text-sm hover:bg-gray-200 transition-all shadow-sm"
             >
               <Eye size={18} />
-              Pratinjau
+              <span className="whitespace-nowrap">Pratinjau</span>
             </button>
             <button
               onClick={() => generateMonthlyReport(filteredTransactions, communityData, 
                 selectedMonth === 'all' || selectedYear === 'all' ? undefined : { month: selectedMonth, year: selectedYear }
               )}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-all text-sm"
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold text-sm hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100"
             >
               <Download size={18} />
-              Ekspor PDF
+              <span className="whitespace-nowrap">Export PDF</span>
             </button>
           </div>
         </div>
@@ -205,18 +193,24 @@ export default function Dashboard({ transactions, communityData }: DashboardProp
                     <stop offset="95%" stopColor="#4f46e5" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis 
                   dataKey="date" 
                   axisLine={false} 
                   tickLine={false} 
-                  tick={{ fontSize: 12, fill: '#94a3b8' }}
+                  tick={{ fontSize: 12, fill: '#64748b' }}
+                  dy={10}
                 />
                 <YAxis 
                   hide 
                 />
                 <Tooltip 
-                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                  contentStyle={{ 
+                    backgroundColor: '#fff', 
+                    borderRadius: '12px', 
+                    border: 'none', 
+                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' 
+                  }}
                   formatter={(value: number) => [formatCurrency(value), 'Saldo']}
                 />
                 <Area 
@@ -231,7 +225,7 @@ export default function Dashboard({ transactions, communityData }: DashboardProp
             </ResponsiveContainer>
           ) : (
             <div className="flex items-center justify-center h-full text-gray-400 font-medium">
-              Tidak ada data transaksi di periode ini
+              Belum ada data transaksi untuk filter ini
             </div>
           )}
         </div>

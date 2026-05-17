@@ -15,7 +15,8 @@ import {
   Cloud,
   ChevronRight,
   Filter,
-  FileText
+  FileText,
+  Clock
 } from 'lucide-react';
 import { format, isToday, isYesterday } from 'date-fns';
 import { id } from 'date-fns/locale';
@@ -51,7 +52,7 @@ export default function TransactionList({ transactions, customCategories, curren
     );
 
     // Date filters
-    const matchesDay = filterDay === '' || tDate.getDate().toString() === filterDay;
+    const matchesDay = filterDay === '' || format(tDate, 'yyyy-MM-dd') === filterDay;
     const matchesMonth = filterMonth === '' || (tDate.getMonth() + 1).toString() === filterMonth;
     const matchesYear = filterYear === '' || tDate.getFullYear().toString() === filterYear;
 
@@ -81,7 +82,6 @@ export default function TransactionList({ transactions, customCategories, curren
     { value: '11', label: 'November' },
     { value: '12', label: 'Desember' }
   ];
-  const days = Array.from({ length: 31 }, (_, i) => (i + 1).toString());
 
   const sortedTransactions = [...filteredTransactions].sort((a, b) => 
     new Date(b.date).getTime() - new Date(a.date).getTime()
@@ -131,101 +131,53 @@ export default function TransactionList({ transactions, customCategories, curren
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden"
+        className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
       >
-        <div className="p-8 border-b border-slate-50 flex flex-col gap-8">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-3">
-                <h3 className="text-2xl font-black text-slate-900 tracking-tight">Riwayat Transaksi</h3>
-                <div className="flex items-center gap-2 px-3 py-1 bg-emerald-50 rounded-full border border-emerald-100">
-                  <div className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                  </div>
-                  <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest leading-none">Sinkron Jaringan</span>
-                </div>
-              </div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-sm shadow-indigo-200"></span>
-                Total Transaksi: <span className="text-slate-900 font-black">{filteredTransactions.length} Entri</span>
-              </p>
+        <div className="p-6 border-b border-gray-100 flex flex-col gap-6">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-xl font-bold text-gray-900 leading-none mb-1">Riwayat Transaksi</h3>
+              <p className="text-sm text-gray-500">Total {filteredTransactions.length} transaksi ditemukan</p>
             </div>
             
-            <div className="flex items-center gap-2 w-full lg:w-auto max-w-2xl">
+            <div className="flex items-center gap-2 w-full lg:w-auto">
               <div className="relative group flex-1">
-                <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={16} />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-600 transition-colors" size={18} />
                 <input
                   type="text"
                   placeholder="Cari transaksi..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-12 pr-6 py-3.5 bg-slate-50 border-2 border-slate-50 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-indigo-500/5 focus:bg-white focus:border-indigo-100 outline-none transition-all placeholder:text-slate-300 shadow-inner"
+                  className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 focus:bg-white focus:border-indigo-500 outline-none transition-all"
                 />
               </div>
 
-              <div className="flex items-center gap-2 shrink-0">
-                <motion.button 
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+              <div className="flex items-center gap-2">
+                <button 
                   onClick={() => setShowFilters(!showFilters)}
                   className={cn(
-                    "p-3.5 rounded-2xl transition-all flex items-center justify-center border-2",
+                    "p-2 rounded-xl transition-all flex items-center justify-center border",
                     showFilters || isFilterActive 
-                      ? "text-indigo-600 bg-white border-indigo-100 shadow-xl shadow-indigo-100/50" 
-                      : "text-slate-400 bg-slate-50 border-transparent hover:text-slate-900"
+                      ? "text-indigo-600 bg-indigo-50 border-indigo-100" 
+                      : "text-gray-400 bg-gray-50 border-gray-200 hover:text-gray-600"
                   )}
                 >
-                  <Filter size={18} />
-                </motion.button>
+                  <Filter size={20} />
+                </button>
 
-                <motion.button 
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                <button 
                   onClick={handleResetAll}
                   disabled={isRefreshing}
                   className={cn(
-                    "p-3.5 rounded-2xl transition-all flex items-center justify-center bg-slate-50 border-2 border-transparent",
-                    isRefreshing ? "text-indigo-500" : "text-slate-400 hover:text-slate-900"
+                    "p-2 rounded-xl transition-all flex items-center justify-center bg-gray-50 border border-gray-200",
+                    isRefreshing ? "text-indigo-600" : "text-gray-400 hover:text-gray-600"
                   )}
                 >
-                  <RotateCcw size={18} className={cn(isRefreshing && "animate-spin")} />
-                </motion.button>
+                  <RotateCcw size={20} className={cn(isRefreshing && "animate-spin")} />
+                </button>
               </div>
             </div>
           </div>
-
-          <AnimatePresence>
-            {isAnyFilterActive && (
-              <motion.div 
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="overflow-hidden"
-              >
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-6 bg-slate-900 rounded-[2rem] text-white">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-emerald-400 backdrop-blur-md">
-                      <TrendingUp size={24} />
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-1">Pemasukan</p>
-                      <p className="text-xl sm:text-2xl font-mono font-bold tracking-tighter text-emerald-400">{formatCurrency(filteredTotals.income)}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4 sm:border-l sm:border-white/10 sm:pl-8">
-                    <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-rose-400 backdrop-blur-md">
-                      <TrendingDown size={24} />
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1">Pengeluaran</p>
-                      <p className="text-xl sm:text-2xl font-mono font-bold tracking-tighter text-rose-400">{formatCurrency(filteredTotals.expense)}</p>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
 
           <AnimatePresence>
             {showFilters && (
@@ -235,93 +187,85 @@ export default function TransactionList({ transactions, customCategories, curren
                 exit={{ opacity: 0, height: 0 }}
                 className="overflow-hidden"
               >
-                <div className="flex flex-col sm:flex-row items-end gap-6 pt-2">
-                  {(!filterMonth && !filterYear) && (
-                    <div className="flex-1 w-full space-y-2">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
-                        <Calendar size={12} className="text-indigo-500" />
-                        Perspektif Harian
-                      </label>
-                      <input
-                        type="date"
-                        className="w-full text-sm font-bold bg-slate-50 border-2 border-slate-50 rounded-[1.5rem] px-6 py-4 outline-none focus:ring-4 focus:ring-indigo-500/5 focus:bg-white focus:border-indigo-100 transition-all cursor-pointer uppercase tracking-widest"
-                        onChange={(e) => {
-                          if (e.target.value) {
-                            const date = new Date(e.target.value);
-                            setFilterDay(date.getDate().toString());
-                            setFilterMonth((date.getMonth() + 1).toString());
-                            setFilterYear(date.getFullYear().toString());
-                          } else {
-                            setFilterDay('');
-                          }
-                        }}
-                      />
-                    </div>
-                  )}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pb-2">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Pilih Tanggal</label>
+                    <input
+                      type="date"
+                      value={filterDay}
+                      onChange={(e) => setFilterDay(e.target.value)}
+                      className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all cursor-pointer"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Bulan</label>
+                    <select
+                      value={filterMonth}
+                      onChange={(e) => setFilterMonth(e.target.value)}
+                      className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all cursor-pointer"
+                    >
+                      <option value="">Semua Bulan</option>
+                      {months.map(m => (
+                        <option key={m.value} value={m.value}>{m.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Tahun</label>
+                    <select
+                      value={filterYear}
+                      onChange={(e) => setFilterYear(e.target.value)}
+                      className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all cursor-pointer"
+                    >
+                      <option value="">Semua Tahun</option>
+                      {years.map(y => (
+                        <option key={y} value={y.toString()}>{y}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-                  {(!filterDay && !filterYear) && (
-                    <div className="flex-1 w-full space-y-2">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Perspektif Bulanan</label>
-                      <div className="relative">
-                        <select
-                          value={filterMonth}
-                          onChange={(e) => setFilterMonth(e.target.value)}
-                          className="w-full text-sm font-bold bg-slate-50 border-2 border-slate-50 rounded-[1.5rem] px-6 py-4 appearance-none outline-none focus:bg-white focus:border-indigo-100 transition-all cursor-pointer"
-                        >
-                          <option value="">Seluruh Bulan</option>
-                          {months.map(month => (
-                            <option key={month.value} value={month.value}>{month.label}</option>
-                          ))}
-                        </select>
-                        <ChevronRight className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-300 rotate-90 pointer-events-none" size={16} />
-                      </div>
-                    </div>
-                  )}
-
-                  {(!filterDay && !filterMonth) && (
-                    <div className="flex-1 w-full space-y-2">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Perspektif Tahunan</label>
-                      <div className="relative">
-                        <select
-                          value={filterYear}
-                          onChange={(e) => setFilterYear(e.target.value)}
-                          className="w-full text-sm font-bold bg-slate-50 border-2 border-slate-50 rounded-[1.5rem] px-6 py-4 appearance-none outline-none focus:bg-white focus:border-indigo-100 transition-all cursor-pointer"
-                        >
-                          <option value="">Seluruh Tahun</option>
-                          {years.map(year => (
-                            <option key={year} value={year.toString()}>{year}</option>
-                          ))}
-                        </select>
-                        <ChevronRight className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-300 rotate-90 pointer-events-none" size={16} />
-                      </div>
-                    </div>
-                  )}
+          <AnimatePresence>
+            {isAnyFilterActive && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-indigo-50/50 rounded-xl border border-indigo-100">
+                  <div>
+                    <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest mb-1">Total Pemasukan (Filter)</p>
+                    <p className="text-xl font-bold text-green-600 leading-none">{formatCurrency(filteredTotals.income)}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest mb-1">Total Pengeluaran (Filter)</p>
+                    <p className="text-xl font-bold text-red-600 leading-none">{formatCurrency(filteredTotals.expense)}</p>
+                  </div>
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
         </div>
 
-        <div className="bg-slate-50/50">
+        <div className="bg-gray-50/50">
           {sortedTransactions.length > 0 ? (
             <div className="flex flex-col">
               {Object.entries(groupedTransactions).map(([dateKey, transactions], groupIndex) => (
                 <div key={dateKey} className="flex flex-col">
-                  <div className="px-8 py-4 bg-white/5 shadow-sm border-y border-slate-100 flex items-center justify-between sticky top-0 z-10 backdrop-blur-xl">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 shadow-inner">
-                        <Calendar size={14} strokeWidth={3} />
-                      </div>
-                      <span className="text-[11px] font-black text-slate-900 uppercase tracking-[0.25em]">
-                        {getRelativeDateLabel(dateKey)}
-                      </span>
-                    </div>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                      {transactions.length} Entri
+                  <div className="px-6 py-3 bg-gray-50 border-y border-gray-100 flex items-center justify-between sticky top-0 z-10">
+                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                      {getRelativeDateLabel(dateKey)}
+                    </span>
+                    <span className="text-[10px] font-bold text-gray-400">
+                      {transactions.length} transaksi
                     </span>
                   </div>
 
-                  <div className="divide-y divide-slate-100 bg-white">
+                  <div className="divide-y divide-gray-100">
                     {transactions.map((t, idx) => (
                       <motion.div 
                         initial={{ opacity: 0, x: -10 }}
@@ -329,72 +273,53 @@ export default function TransactionList({ transactions, customCategories, curren
                         transition={{ delay: (groupIndex * 0.1) + (idx * 0.05) }}
                         key={t.id} 
                         onClick={() => setSelectedTransaction(t)}
-                        className="px-8 py-6 hover:bg-slate-50 transition-all flex items-center gap-6 cursor-pointer group relative overflow-hidden active:scale-[0.995]"
+                        className="p-6 hover:bg-white transition-all flex items-center gap-6 cursor-pointer group"
                       >
-                        <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-indigo-500 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300"></div>
-
                         <div className={cn(
-                          "w-16 h-16 rounded-[1.5rem] shrink-0 flex flex-col items-center justify-center transition-all group-hover:scale-105 group-hover:-rotate-2 shadow-sm border-2",
-                          t.type === 'income' 
-                            ? "bg-emerald-50 text-emerald-600 border-emerald-100" 
-                            : "bg-rose-50 text-rose-600 border-rose-100"
+                          "w-12 h-12 rounded-xl shrink-0 flex items-center justify-center transition-transform group-hover:scale-110",
+                          t.type === 'income' ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"
                         )}>
-                          {t.type === 'income' ? <ArrowUpRight size={28} strokeWidth={2.5} /> : <ArrowDownLeft size={28} strokeWidth={2.5} />}
+                          {t.type === 'income' ? <ArrowUpRight size={24} /> : <ArrowDownLeft size={24} />}
                         </div>
                         
                         <div className="flex-1 min-w-0">
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            <div className="space-y-1">
-                              <div className="flex items-center gap-2">
-                                <h4 className="font-black text-slate-900 tracking-tight text-lg group-hover:text-indigo-600 transition-colors">{t.category}</h4>
-                                <div className={cn(
-                                  "p-1 px-2 rounded-lg text-[9px] font-extrabold uppercase tracking-widest border",
-                                  t.type === 'income' 
-                                    ? "bg-emerald-50 text-emerald-600 border-emerald-100" 
-                                    : "bg-rose-50 text-rose-600 border-rose-100"
-                                )}>
-                                  {t.type === 'income' ? 'Pemasukan' : 'Pengeluaran'}
-                                </div>
-                              </div>
-                              <p className="text-sm text-slate-500 font-medium line-clamp-1 italic pr-4">
-                                "{t.description || 'Tanpa deskripsi tambahan'}"
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <div>
+                              <h4 className="font-bold text-gray-900 truncate">{t.category}</h4>
+                              <p className="text-sm text-gray-500 truncate mt-0.5">
+                                {t.description || 'Tanpa keterangan'}
                               </p>
                             </div>
                             
-                            <div className="flex flex-col items-start sm:items-end">
+                            <div className="text-right">
                               <p className={cn(
-                                "font-mono font-bold text-xl sm:text-2xl tracking-tighter leading-none mb-1 text-right",
-                                t.type === 'income' ? "text-emerald-600" : "text-rose-600"
+                                "font-black text-lg leading-tight",
+                                t.type === 'income' ? "text-green-600" : "text-red-600"
                               )}>
-                                {formatCurrency(t.amount)}
+                                {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount)}
                               </p>
-                              <div className="flex items-center gap-1.5 text-slate-300">
-                                {/* Verified status hidden */}
-                              </div>
                             </div>
                           </div>
                           
-                          <div className="mt-4 flex flex-wrap items-center gap-3">
-                            <div className="flex items-center gap-2.5 py-2 px-4 bg-slate-50 border border-slate-100 rounded-2xl group-hover:bg-white group-hover:border-slate-200 transition-all">
-                              <div className="w-6 h-6 rounded-xl bg-white shadow-sm flex items-center justify-center text-indigo-500 border border-indigo-50">
-                                <User size={12} strokeWidth={3} />
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <span className="text-[11px] font-black text-slate-700 tracking-tight">
-                                  {t.userName || 'System Auto'}
+                          <div className="mt-3 flex flex-wrap items-center gap-3">
+                            <div className="flex items-center gap-1.5 py-1 px-2.5 bg-gray-100 rounded-lg">
+                              <User size={12} className="text-gray-400" />
+                              <span className="text-[11px] font-bold text-gray-600">
+                                {t.userName || 'Sistem'}
+                              </span>
+                              {(t.userTitle || memberTitles?.[t.userId]) && (
+                                <span className="text-[10px] bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded font-black uppercase tracking-wide">
+                                  {t.userTitle || memberTitles?.[t.userId]}
                                 </span>
-                                {(t.userTitle || memberTitles?.[t.userId]) && (
-                                  <span className="text-[9px] font-black text-white bg-slate-900 px-2.5 py-1 rounded-lg uppercase tracking-widest shadow-lg shadow-slate-200">
-                                    {t.userTitle || memberTitles?.[t.userId]}
-                                  </span>
-                                )}
-                              </div>
+                              )}
                             </div>
                             
-                            <div className="hidden group-hover:flex items-center gap-2 text-indigo-600 animate-in slide-in-from-left-2 duration-300">
-                              <span className="text-[10px] font-black uppercase tracking-widest">Detail Node</span>
-                              <ChevronRight size={14} />
+                            <div className="flex items-center gap-1 text-gray-400">
+                              <Clock size={12} />
+                              <span className="text-[11px] font-medium">{t.createdAt ? format(new Date(t.createdAt?.toDate?.() || t.createdAt), 'HH:mm') : '--:--'}</span>
                             </div>
+
+                            <ChevronRight size={14} className="text-gray-300 ml-auto group-hover:text-indigo-400 group-hover:translate-x-1 transition-all" />
                           </div>
                         </div>
                       </motion.div>

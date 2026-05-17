@@ -67,23 +67,23 @@ export default function TransactionForm({ onClose, customCategories, communityId
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-        <div className="p-6 flex justify-between items-center border-bottom border-gray-100">
-          <h2 className="text-xl font-bold text-gray-900">Catat Transaksi</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-xl z-[100] flex items-center justify-center p-4">
+      <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
+        <div className="p-6 flex justify-between items-center border-b border-gray-100">
+          <h2 className="text-xl font-black text-gray-900">Catat Transaksi</h2>
+          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 rounded-xl transition-all">
             <X size={24} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div className="flex p-1 bg-gray-100 rounded-lg">
+        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+          <div className="flex p-1 bg-gray-100 rounded-xl">
             <button
               type="button"
               onClick={() => { setType('income'); setCategory(categories.income[0] || ''); }}
               className={cn(
-                "flex-1 py-2 text-sm font-black uppercase tracking-widest rounded-md transition-all",
-                type === 'income' ? "bg-white text-green-600 shadow-sm" : "text-gray-400 hover:text-green-500"
+                "flex-1 py-2 text-sm font-bold rounded-lg transition-all",
+                type === 'income' ? "bg-white text-green-600 shadow-sm" : "text-gray-500"
               )}
             >
               Pemasukan
@@ -92,19 +92,16 @@ export default function TransactionForm({ onClose, customCategories, communityId
               type="button"
               onClick={() => { setType('expense'); setCategory(categories.expense[0] || ''); }}
               className={cn(
-                "flex-1 py-2 text-sm font-black uppercase tracking-widest rounded-md transition-all",
-                type === 'expense' ? "bg-white text-red-600 shadow-sm" : "text-gray-400 hover:text-red-500"
+                "flex-1 py-2 text-sm font-bold rounded-lg transition-all",
+                type === 'expense' ? "bg-white text-red-600 shadow-sm" : "text-gray-500"
               )}
             >
               Pengeluaran
             </button>
           </div>
 
-          <div>
-            <label className={cn(
-              "block text-[10px] font-black uppercase tracking-widest mb-1 ml-1",
-              type === 'income' ? "text-green-600" : "text-red-600"
-            )}>Nominal (Rp)</label>
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-gray-500 ml-1">Jumlah</label>
             <div className="relative">
               <input
                 type="text"
@@ -112,71 +109,51 @@ export default function TransactionForm({ onClose, customCategories, communityId
                 value={amount ? formatNumber(Number(amount)) : ''}
                 onChange={handleChangeAmount}
                 placeholder="0"
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all font-mono font-bold text-lg tracking-tighter"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-gray-900 focus:ring-2 focus:ring-indigo-500 outline-none transition-all font-bold text-lg"
               />
-              <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 text-xs font-bold pointer-events-none">
-                IDR
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-bold">
+                Rp
               </div>
             </div>
           </div>
 
-          <div>
-            <label className={cn(
-              "block text-[10px] font-black uppercase tracking-widest mb-1 ml-1",
-              type === 'income' ? "text-green-600" : "text-red-600"
-            )}>Kategori</label>
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-gray-500 ml-1">Kategori</label>
             {categories[type].length > 0 ? (
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500 outline-none transition-all cursor-pointer"
               >
                 {categories[type].map(cat => (
                   <option key={cat} value={cat}>{cat}</option>
                 ))}
               </select>
             ) : (
-              <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                <p className="text-xs text-amber-700">
-                  Belum ada kategori {type === 'income' ? 'pemasukan' : 'pengeluaran'}. 
-                  Silakan buat kategori di menu <strong>Pengaturan</strong> terlebih dahulu.
-                </p>
+              <div className="p-3 bg-amber-50 border border-amber-100 rounded-xl">
+                <p className="text-xs text-amber-600 font-medium">Buka menu Setelan untuk menambahkan kategori baru.</p>
               </div>
             )}
           </div>
 
-          <div>
-            <label className={cn(
-              "block text-[10px] font-black uppercase tracking-widest mb-1 ml-1",
-              type === 'income' ? "text-green-600" : "text-red-600"
-            )}>Tanggal</label>
-            <div className="relative">
-              <input
-                type="date"
-                required
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all opacity-0 absolute inset-0 z-10 cursor-pointer"
-              />
-              <div className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white flex justify-between items-center pointer-events-none">
-                <span className="text-gray-900 font-medium">
-                  {date ? format(new Date(date), 'dd-MM-yyyy') : 'Pilih Tanggal'}
-                </span>
-                <Calendar size={18} className="text-gray-400" />
-              </div>
-            </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-gray-500 ml-1">Tanggal</label>
+            <input
+              type="date"
+              required
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500 outline-none transition-all cursor-pointer"
+            />
           </div>
 
-          <div>
-            <label className={cn(
-              "block text-[10px] font-black uppercase tracking-widest mb-1 ml-1",
-              type === 'income' ? "text-green-600" : "text-red-600"
-            )}>Keterangan</label>
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-gray-500 ml-1">Keterangan</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Misal: Iuran bulanan Bp. Ahmad"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all resize-none h-20"
+              placeholder="Contoh: Iuran bulan Juni Pak Budi"
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500 outline-none transition-all resize-none h-24"
             />
           </div>
 
@@ -184,8 +161,8 @@ export default function TransactionForm({ onClose, customCategories, communityId
             type="submit"
             disabled={loading || categories[type].length === 0}
             className={cn(
-              "w-full py-3 rounded-xl font-bold text-white transition-all shadow-lg active:scale-[0.98]",
-              type === 'income' ? "bg-green-600 hover:bg-green-700 shadow-green-200" : "bg-red-600 hover:bg-red-700 shadow-red-200",
+              "w-full py-4 rounded-xl font-bold text-white transition-all shadow-lg active:scale-95 mt-2",
+              type === 'income' ? "bg-green-600 hover:bg-green-700 shadow-green-100" : "bg-red-600 hover:bg-red-700 shadow-red-100",
               (loading || categories[type].length === 0) && "opacity-50 cursor-not-allowed"
             )}
           >

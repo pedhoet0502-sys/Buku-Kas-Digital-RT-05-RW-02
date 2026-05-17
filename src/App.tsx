@@ -11,6 +11,7 @@ import TransactionList from './components/TransactionList';
 import TransactionForm from './components/TransactionForm';
 import Settings from './components/Settings';
 import SplashScreen from './components/SplashScreen';
+import ConfirmModal from './components/ConfirmModal';
 import { doc, getDoc } from 'firebase/firestore';
 import { DEFAULT_CATEGORIES } from './lib/constants';
 import { AnimatePresence } from 'motion/react';
@@ -32,6 +33,8 @@ export default function App() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [showSyncNotice, setShowSyncNotice] = useState(false);
 
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
   const handleSync = () => {
     if (isSyncing) return;
     setIsSyncing(true);
@@ -41,6 +44,15 @@ export default function App() {
       setShowSyncNotice(true);
       setTimeout(() => setShowSyncNotice(false), 3000);
     }, 1500);
+  };
+
+  const handleLogout = () => {
+    setShowLogoutConfirm(true);
+  };
+
+  const confirmLogout = () => {
+    logout();
+    setShowLogoutConfirm(false);
   };
 
   useEffect(() => {
@@ -214,10 +226,10 @@ export default function App() {
           </button>
 
           <button
-            onClick={() => window.close()}
-            className="w-full py-4 mt-3 bg-white border-2 border-slate-100 text-slate-400 rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-slate-50 transition-all active:scale-[0.98]"
+            onClick={handleLogout}
+            className="w-full py-4 mt-3 bg-white border-2 border-red-50 text-red-500 rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-red-50 transition-all active:scale-[0.98]"
           >
-            <XCircle size={20} />
+            <LogOut size={20} />
             Keluar Aplikasi
           </button>
           
@@ -230,36 +242,36 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FBFBFE] pb-24 md:pb-8">
+    <div className="min-h-screen bg-gray-50 pb-24 md:pb-8">
       {/* Header */}
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-40">
+      <header className="bg-white border-b border-gray-100 sticky top-0 z-40 transition-all">
         <div className="max-w-5xl mx-auto px-6 h-18 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white">
               <LayoutDashboard size={18} strokeWidth={3} />
             </div>
-            <span className="font-black text-gray-900 tracking-tight text-lg">KAS RT</span>
+            <span className="font-black text-gray-900 tracking-tight text-lg uppercase">KAS RT DIGITAL</span>
           </div>
           <div className="flex items-center gap-3">
             <motion.button
               onClick={handleSync}
               whileTap={{ scale: 0.9 }}
-              className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-xl transition-all"
+              className="p-2 text-blue-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
               title="Sinkronisasi Cloud"
             >
               <motion.div
                 animate={isSyncing ? { rotate: 360 } : { rotate: 0 }}
                 transition={isSyncing ? { repeat: Infinity, duration: 1, ease: "linear" } : { duration: 0.5 }}
               >
-                <RefreshCw size={20} className={cn(isSyncing ? "text-indigo-600" : "text-gray-400")} />
+                <RefreshCw size={20} className={cn(isSyncing ? "text-blue-600" : "text-blue-500")} />
               </motion.div>
             </motion.button>
             <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-full border border-gray-100">
               <div className="w-6 h-6 rounded-full overflow-hidden bg-indigo-100">
-                {user.photoURL ? <img src={user.photoURL} alt="" /> : <UserIcon size={14} className="m-auto mt-1" />}
+                {user.photoURL ? <img src={user.photoURL} alt="" /> : <UserIcon size={14} className="m-auto text-indigo-400 mt-1" />}
               </div>
               <div className="flex flex-col">
-                <span className="text-[10px] font-bold text-gray-700 truncate max-w-[100px] leading-tight">{user.displayName || 'User'}</span>
+                <span className="text-[10px] font-bold text-gray-700 truncate max-w-[100px] leading-tight">{user.displayName || 'Pengurus'}</span>
                 {userTitle && (
                   <span className="text-[9px] font-black text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded mt-0.5 uppercase tracking-wide leading-none w-fit">
                     {userTitle}
@@ -268,8 +280,8 @@ export default function App() {
               </div>
             </div>
             <button
-              onClick={logout}
-              className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+              onClick={handleLogout}
+              className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-xl transition-all"
               title="Keluar"
             >
               <LogOut size={20} />
@@ -280,7 +292,7 @@ export default function App() {
 
       <main className="max-w-5xl mx-auto p-6 space-y-8">
         {/* Navigation Tabs (Desktop) */}
-        <div className="hidden md:flex bg-gray-100/50 p-1 rounded-xl w-fit">
+        <div className="hidden md:flex bg-gray-100/50 p-1 rounded-xl w-fit border border-gray-100">
           <button
             onClick={() => setActiveTab('dashboard')}
             className={cn(
@@ -289,7 +301,7 @@ export default function App() {
             )}
           >
             <LayoutDashboard size={18} />
-            Dashboard
+            Beranda
           </button>
           <button
             onClick={() => setActiveTab('transactions')}
@@ -309,7 +321,7 @@ export default function App() {
             )}
           >
             <SettingsIcon size={18} />
-            Pengaturan
+            Setelan
           </button>
         </div>
 
@@ -332,47 +344,57 @@ export default function App() {
       {communityRole === 'admin' && (
         <button
           onClick={() => setShowForm(true)}
-          className="fixed bottom-24 md:bottom-8 right-6 w-14 h-14 bg-indigo-600 text-white rounded-2xl shadow-2xl shadow-indigo-200 flex items-center justify-center hover:bg-indigo-700 transition-all active:scale-90 z-50 group"
+          className="fixed bottom-24 md:bottom-8 right-6 w-16 h-16 bg-indigo-600 text-white rounded-[1.75rem] shadow-2xl shadow-indigo-600/30 flex items-center justify-center hover:bg-indigo-500 transition-all active:scale-90 z-50 group border border-indigo-400/30 backdrop-blur-md"
         >
-          <Plus size={32} className="group-hover:rotate-90 transition-transform duration-300" />
+          <Plus size={36} className="group-hover:rotate-180 transition-transform duration-500" />
         </button>
       )}
 
       {/* Bottom Navigation (Mobile Only) */}
-      <nav className="md:hidden fixed bottom-6 left-6 right-6 h-16 bg-gray-900 border border-white/10 rounded-2xl shadow-2xl z-40 px-8 flex items-center justify-between">
+      <nav className="md:hidden fixed bottom-6 left-6 right-6 h-20 bg-glass/90 backdrop-blur-3xl border border-white/10 rounded-[2rem] shadow-2xl z-40 px-8 flex items-center justify-between">
         <button
           onClick={() => setActiveTab('dashboard')}
           className={cn(
-            "flex flex-col items-center gap-1 transition-all",
-            activeTab === 'dashboard' ? "text-indigo-400" : "text-gray-400"
+            "flex flex-col items-center gap-2 transition-all",
+            activeTab === 'dashboard' ? "text-indigo-400" : "text-slate-500"
           )}
         >
           <LayoutDashboard size={24} />
-          <span className="text-[10px] font-bold uppercase tracking-widest">Beranda</span>
+          <span className="text-[8px] font-black uppercase tracking-[0.2em]">Beranda</span>
         </button>
         <button
           onClick={() => setActiveTab('transactions')}
           className={cn(
-            "flex flex-col items-center gap-1 transition-all",
-            activeTab === 'transactions' ? "text-indigo-400" : "text-gray-400"
+            "flex flex-col items-center gap-2 transition-all",
+            activeTab === 'transactions' ? "text-indigo-400" : "text-slate-500"
           )}
         >
           <History size={24} />
-          <span className="text-[10px] font-bold uppercase tracking-widest">Riwayat</span>
+          <span className="text-[8px] font-black uppercase tracking-[0.2em]">Transaksi</span>
         </button>
         <button
           onClick={() => setActiveTab('settings')}
           className={cn(
-            "flex flex-col items-center gap-1 transition-all",
-            activeTab === 'settings' ? "text-indigo-400" : "text-gray-400"
+            "flex flex-col items-center gap-2 transition-all",
+            activeTab === 'settings' ? "text-indigo-400" : "text-slate-500"
           )}
         >
           <SettingsIcon size={24} />
-          <span className="text-[10px] font-bold uppercase tracking-widest">Setelan</span>
+          <span className="text-[8px] font-black uppercase tracking-[0.2em]">Setelan</span>
         </button>
       </nav>
 
       {/* Modals */}
+      <ConfirmModal 
+        isOpen={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={confirmLogout}
+        title="Konfirmasi Keluar"
+        message="anda yakin ingin keluar Dari aplikasi"
+        confirmText="Keluar"
+        cancelText="Batal"
+      />
+
       {showForm && (
         <TransactionForm 
           onClose={() => setShowForm(false)} 
