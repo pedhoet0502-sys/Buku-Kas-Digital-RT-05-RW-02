@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { collection, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db, auth } from '@/src/lib/firebase';
 import { handleFirestoreError, OperationType } from '@/src/lib/firestoreErrorHandler';
-import { cn } from '@/src/lib/utils';
-import { Plus, X } from 'lucide-react';
+import { cn, formatNumber } from '@/src/lib/utils';
+import { Plus, X, Calendar } from 'lucide-react';
+import { format } from 'date-fns';
 
 interface TransactionFormProps {
   onClose: () => void;
@@ -23,6 +24,12 @@ export default function TransactionForm({ onClose, customCategories, communityId
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const handleChangeAmount = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Remove all non-digits
+    const value = e.target.value.replace(/\D/g, '');
+    setAmount(value);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,14 +105,19 @@ export default function TransactionForm({ onClose, customCategories, communityId
               "block text-[10px] font-black uppercase tracking-widest mb-1 ml-1",
               type === 'income' ? "text-green-600" : "text-red-600"
             )}>Nominal (Rp)</label>
-            <input
-              type="number"
-              required
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="0"
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all font-mono font-bold text-lg tracking-tighter"
-            />
+            <div className="relative">
+              <input
+                type="text"
+                required
+                value={amount ? formatNumber(Number(amount)) : ''}
+                onChange={handleChangeAmount}
+                placeholder="0"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all font-mono font-bold text-lg tracking-tighter"
+              />
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 text-xs font-bold pointer-events-none">
+                IDR
+              </div>
+            </div>
           </div>
 
           <div>
@@ -138,13 +150,21 @@ export default function TransactionForm({ onClose, customCategories, communityId
               "block text-[10px] font-black uppercase tracking-widest mb-1 ml-1",
               type === 'income' ? "text-green-600" : "text-red-600"
             )}>Tanggal</label>
-            <input
-              type="date"
-              required
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
-            />
+            <div className="relative">
+              <input
+                type="date"
+                required
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all opacity-0 absolute inset-0 z-10 cursor-pointer"
+              />
+              <div className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white flex justify-between items-center pointer-events-none">
+                <span className="text-gray-900 font-medium">
+                  {date ? format(new Date(date), 'dd-MM-yyyy') : 'Pilih Tanggal'}
+                </span>
+                <Calendar size={18} className="text-gray-400" />
+              </div>
+            </div>
           </div>
 
           <div>

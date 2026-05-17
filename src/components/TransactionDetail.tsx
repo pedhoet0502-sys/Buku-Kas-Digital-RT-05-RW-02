@@ -22,7 +22,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db, auth } from '@/src/lib/firebase';
 import { handleFirestoreError, OperationType } from '@/src/lib/firestoreErrorHandler';
-import { cn } from '@/src/lib/utils';
+import { cn, formatNumber } from '@/src/lib/utils';
 import ConfirmModal from './ConfirmModal';
 
 interface TransactionDetailProps {
@@ -41,6 +41,7 @@ export default function TransactionDetail({ transaction, onClose, customCategori
   };
   const [isEditing, setIsEditing] = useState(false);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+  const [showConfirmUpdate, setShowConfirmUpdate] = useState(false);
   const [loading, setLoading] = useState(false);
   
   // Edit states
@@ -53,9 +54,18 @@ export default function TransactionDetail({ transaction, onClose, customCategori
   if (!transaction) return null;
 
   const canEdit = currentRole === 'admin';
+  
+  const handleChangeAmount = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, '');
+    setAmount(value);
+  };
 
-  const handleUpdate = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setShowConfirmUpdate(true);
+  };
+
+  const handleUpdate = async () => {
     if (!auth.currentUser || !canEdit) return;
 
     setLoading(true);
@@ -73,6 +83,7 @@ export default function TransactionDetail({ transaction, onClose, customCategori
         handleFirestoreError(e, OperationType.UPDATE, `transactions/${transaction.id}`);
       }
       setIsEditing(false);
+      setShowConfirmUpdate(false);
     } catch (error) {
       console.error('Update Error:', error);
       alert('Gagal memperbarui transaksi.');
@@ -111,6 +122,14 @@ export default function TransactionDetail({ transaction, onClose, customCategori
         message="Data ini akan dihapus secara permanen dari server Cloud RT Digital. Seluruh log transaksi terkait akan disesuaikan secara real-time."
         loading={loading}
       />
+      <ConfirmModal 
+        isOpen={showConfirmUpdate}
+        onClose={() => setShowConfirmUpdate(false)}
+        onConfirm={handleUpdate}
+        title="Simpan Perubahan?"
+        message="Apakah Anda yakin ingin memperbarui data transaksi ini? Perubahan akan langsung tercermin pada laporan keuangan komunitas."
+        loading={loading}
+      />
       <motion.div 
         initial={{ opacity: 0, scale: 0.95, y: 100 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -138,7 +157,7 @@ export default function TransactionDetail({ transaction, onClose, customCategori
 
         <div className="flex-1 overflow-y-auto">
           {isEditing ? (
-            <form onSubmit={handleUpdate} className="p-10 space-y-8">
+            <form onSubmit={handleSubmit} className="p-10 space-y-8">
               <div className="grid grid-cols-2 p-2 bg-slate-100 rounded-3xl gap-2">
                 <button
                   type="button"
@@ -168,10 +187,10 @@ export default function TransactionDetail({ transaction, onClose, customCategori
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block ml-1">Nominal Transaksi (IDR)</label>
                     <div className="relative">
                       <input
-                        type="number"
+                        type="text"
                         required
-                        value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
+                        value={amount ? formatNumber(Number(amount)) : ''}
+                        onChange={handleChangeAmount}
                         placeholder="0"
                         className="w-full px-8 py-5 bg-slate-50 border-2 border-slate-50 rounded-[2rem] focus:ring-4 focus:ring-indigo-500/5 focus:bg-white focus:border-indigo-100 text-2xl font-mono font-bold text-slate-900 outline-none transition-all tracking-tighter"
                       />
@@ -198,13 +217,21 @@ export default function TransactionDetail({ transaction, onClose, customCategori
                 <div className="space-y-4">
                   <div>
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block ml-1">Hari, tanggal</label>
-                    <input
-                      type="date"
-                      required
-                      value={date}
-                      onChange={(e) => setDate(e.target.value)}
-                      className="w-full px-8 py-5 bg-slate-50 border-2 border-slate-50 rounded-[2rem] focus:ring-4 focus:ring-indigo-500/5 focus:bg-white focus:border-indigo-100 text-sm font-black text-slate-900 outline-none transition-all uppercase tracking-[0.2em]"
-                    />
+                    <div className="relative group">
+                      <input
+                        type="date"
+                        required
+                        value={date}
+                        onChange={(e) => setDate(e.target.value)}
+                        className="w-full px-8 py-5 bg-slate-50 border-2 border-slate-50 rounded-[2rem] focus:ring-4 focus:ring-indigo-500/5 focus:bg-white focus:border-indigo-100 text-sm font-black text-slate-900 outline-none transition-all uppercase tracking-[0.2em] opacity-0 absolute inset-0 z-10 cursor-pointer"
+                      />
+                      <div className="w-full px-8 py-5 bg-slate-50 border-2 border-slate-50 rounded-[2rem] flex justify-between items-center pointer-events-none group-focus-within:border-indigo-100 group-focus-within:ring-4 group-focus-within:ring-indigo-500/5 transition-all">
+                        <span className="text-sm font-black text-slate-900 uppercase tracking-[0.2em]">
+                          {date ? format(new Date(date), 'dd-MM-yyyy') : 'Pilih Tanggal'}
+                        </span>
+                        <Calendar size={18} className="text-slate-400" />
+                      </div>
+                    </div>
                   </div>
 
                   <div>

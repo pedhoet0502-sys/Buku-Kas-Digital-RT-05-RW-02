@@ -3,7 +3,7 @@ import { X, Download, FileText } from 'lucide-react';
 import { getMonthlyReportPdf } from '@/src/lib/pdfGenerator';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { formatCurrency, cn } from '@/src/lib/utils';
+import { formatNumber, cn } from '@/src/lib/utils';
 
 interface ReportPreviewProps {
   transactions: any[];
@@ -113,13 +113,13 @@ export default function ReportPreview({ transactions, communityData, period, onC
                               {t.description || t.category || '-'}
                             </td>
                             <td className="p-1 px-2 border border-slate-200 text-right text-emerald-600 font-mono font-bold">
-                              {t.type === 'income' ? formatCurrency(t.amount).replace('Rp', '').trim() : '-'}
+                              {t.type === 'income' ? formatNumber(t.amount) : '-'}
                             </td>
                             <td className="p-1 px-2 border border-slate-200 text-right text-rose-600 font-mono font-bold">
-                              {t.type === 'expense' ? formatCurrency(t.amount).replace('Rp', '').trim() : '-'}
+                              {t.type === 'expense' ? formatNumber(t.amount) : '-'}
                             </td>
                             <td className="p-1 px-2 border border-slate-200 text-right font-mono font-black text-slate-900 bg-slate-50/30">
-                              {formatCurrency(Math.abs(t.currentBalance)).replace('Rp', '').trim()}
+                              {formatNumber(Math.abs(t.currentBalance))}
                             </td>
                           </tr>
                         ));

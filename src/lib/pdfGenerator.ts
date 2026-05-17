@@ -2,7 +2,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { formatCurrency } from './utils';
+import { formatCurrency, formatNumber } from './utils';
 
 export const getMonthlyReportPdf = (transactions: any[], communityData?: any, period?: { month: number, year: number }) => {
   const doc = new jsPDF() as any;
@@ -42,9 +42,9 @@ export const getMonthlyReportPdf = (transactions: any[], communityData?: any, pe
         no: index + 1,
         date: format(new Date(t.date), 'dd/MM/yy'),
         description: t.description || t.category || '-',
-        income: t.type === 'income' ? formatCurrency(t.amount).replace('Rp', '').trim() : '-',
-        expense: t.type === 'expense' ? formatCurrency(t.amount).replace('Rp', '').trim() : '-',
-        balance: formatCurrency(Math.abs(runningBalance)).replace('Rp', '').trim()
+        income: t.type === 'income' ? formatNumber(t.amount) : '-',
+        expense: t.type === 'expense' ? formatNumber(t.amount) : '-',
+        balance: formatNumber(Math.abs(runningBalance))
       };
     })
     .map((r) => [

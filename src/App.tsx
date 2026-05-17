@@ -4,7 +4,7 @@ import { onAuthStateChanged, User } from 'firebase/auth';
 import { db, auth, loginWithGoogle, logout } from './lib/firebase';
 import { handleFirestoreError, OperationType } from './lib/firestoreErrorHandler';
 import { motion } from 'motion/react';
-import { Plus, LogOut, LayoutDashboard, History, User as UserIcon, LogIn, Settings as SettingsIcon, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { Plus, LogOut, LayoutDashboard, History, User as UserIcon, LogIn, Settings as SettingsIcon, RefreshCw, CheckCircle2, XCircle } from 'lucide-react';
 import { cn } from './lib/utils';
 import Dashboard from './components/Dashboard';
 import TransactionList from './components/TransactionList';
@@ -211,6 +211,14 @@ export default function App() {
           >
             <LogIn size={20} />
             Masuk dengan Google
+          </button>
+
+          <button
+            onClick={() => window.close()}
+            className="w-full py-4 mt-3 bg-white border-2 border-slate-100 text-slate-400 rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-slate-50 transition-all active:scale-[0.98]"
+          >
+            <XCircle size={20} />
+            Keluar Aplikasi
           </button>
           
           <p className="mt-8 text-xs text-gray-400">
