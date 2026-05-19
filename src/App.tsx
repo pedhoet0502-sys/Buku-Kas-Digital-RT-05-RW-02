@@ -4,7 +4,7 @@ import { onAuthStateChanged, User } from 'firebase/auth';
 import { db, auth, loginWithGoogle, logout } from './lib/firebase';
 import { handleFirestoreError, OperationType } from './lib/firestoreErrorHandler';
 import { motion } from 'motion/react';
-import { Plus, LogOut, LayoutDashboard, History, User as UserIcon, LogIn, Settings as SettingsIcon, RefreshCw, CheckCircle2, XCircle } from 'lucide-react';
+import { Plus, LogOut, LayoutDashboard, Cloud, History, User as UserIcon, LogIn, Settings as SettingsIcon, CheckCircle2, XCircle, ChevronRight } from 'lucide-react';
 import { cn } from './lib/utils';
 import Dashboard from './components/Dashboard';
 import TransactionList from './components/TransactionList';
@@ -30,21 +30,8 @@ export default function App() {
   const [communityTitles, setCommunityTitles] = useState<{[key: string]: string}>({});
   const [communityData, setCommunityData] = useState<any>(null);
   const [categories, setCategories] = useState<{income: string[], expense: string[]}>(DEFAULT_CATEGORIES);
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [showSyncNotice, setShowSyncNotice] = useState(false);
 
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-
-  const handleSync = () => {
-    if (isSyncing) return;
-    setIsSyncing(true);
-    // Simulate sync animation
-    setTimeout(() => {
-      setIsSyncing(false);
-      setShowSyncNotice(true);
-      setTimeout(() => setShowSyncNotice(false), 3000);
-    }, 1500);
-  };
 
   const handleLogout = () => {
     setShowLogoutConfirm(true);
@@ -212,7 +199,7 @@ export default function App() {
       <div className="min-h-screen bg-indigo-600 flex items-center justify-center p-6">
         <div className="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl text-center">
           <div className="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-3xl flex items-center justify-center mx-auto mb-6">
-            <LayoutDashboard size={40} />
+            <LayoutDashboard size={40} strokeWidth={2} />
           </div>
           <h1 className="text-2xl font-black text-gray-900 mb-2">Kas RT Digital</h1>
           <p className="text-gray-500 mb-8">Pencatatan keuangan RT yang praktis, transparan, dan real-time.</p>
@@ -244,31 +231,30 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gray-50 pb-24 md:pb-8">
       {/* Header */}
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-40 transition-all">
+      <header className="bg-white border-b border-gray-100 sticky top-0 z-40">
         <div className={cn(
-          "mx-auto px-6 h-18 flex items-center justify-between transition-all duration-300",
-          activeTab === 'transactions' ? "max-w-full" : "max-w-5xl"
+          "mx-auto px-6 h-18 flex items-center justify-between",
+          (activeTab === 'transactions' || activeTab === 'dashboard') ? "max-w-full" : "max-w-5xl"
         )}>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white">
-              <LayoutDashboard size={18} strokeWidth={3} />
-            </div>
-            <span className="font-black text-gray-900 tracking-tight text-lg uppercase">KAS RT DIGITAL</span>
-          </div>
           <div className="flex items-center gap-3">
-            <motion.button
-              onClick={handleSync}
-              whileTap={{ scale: 0.9 }}
-              className="p-2 text-blue-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
-              title="Sinkronisasi Cloud"
-            >
+            <div className="text-blue-600 group hover:scale-110 transition-transform">
+              <LayoutDashboard size={24} strokeWidth={2} />
+            </div>
+            <div className="flex flex-col">
+              <span className="font-black text-gray-900 tracking-tight text-lg uppercase leading-none">KAS RT DIGITAL</span>
+              <span className="text-[10px] font-bold text-slate-400 tracking-[0.2em] mt-1">RT 05 RW 02</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 bg-emerald-50/50 px-3 py-1.5 rounded-full border border-emerald-100/50">
               <motion.div
-                animate={isSyncing ? { rotate: 360 } : { rotate: 0 }}
-                transition={isSyncing ? { repeat: Infinity, duration: 1, ease: "linear" } : { duration: 0.5 }}
+                animate={{ opacity: [1, 0.4, 1] }}
+                transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
               >
-                <RefreshCw size={20} className={cn(isSyncing ? "text-blue-600" : "text-blue-500")} />
+                <Cloud size={14} className="text-emerald-500 fill-emerald-500/10" />
               </motion.div>
-            </motion.button>
+              <span className="text-[10px] font-black text-emerald-600 tracking-tight">98% CLOUD</span>
+            </div>
             <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-full border border-gray-100">
               <div className="w-6 h-6 rounded-full overflow-hidden bg-indigo-100">
                 {user.photoURL ? <img src={user.photoURL} alt="" /> : <UserIcon size={14} className="m-auto text-indigo-400 mt-1" />}
@@ -295,21 +281,21 @@ export default function App() {
 
       <main className={cn(
         "mx-auto space-y-8 transition-all duration-300",
-        activeTab === 'transactions' ? "max-w-full p-0 space-y-0" : "max-w-5xl p-6"
+        (activeTab === 'transactions' || activeTab === 'dashboard') ? "max-w-full p-0 space-y-0" : "max-w-5xl p-6"
       )}>
         {/* Navigation Tabs (Desktop) */}
         <div className={cn(
           "hidden md:flex bg-gray-100/50 p-1 rounded-xl w-fit border border-gray-100",
-          activeTab === 'transactions' ? "mx-auto my-6" : ""
+          (activeTab === 'transactions' || activeTab === 'dashboard') ? "mx-auto my-6" : ""
         )}>
           <button
             onClick={() => setActiveTab('dashboard')}
             className={cn(
               "px-6 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2",
-              activeTab === 'dashboard' ? "bg-white text-indigo-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
+              activeTab === 'dashboard' ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
             )}
           >
-            <LayoutDashboard size={18} />
+            <LayoutDashboard size={18} strokeWidth={2} />
             Beranda
           </button>
           <button
@@ -382,7 +368,7 @@ export default function App() {
       </main>
 
       {/* Floating Action Button (Mobile & Desktop) */}
-      {communityRole === 'admin' && (
+      {communityRole === 'admin' && activeTab !== 'dashboard' && (
         <button
           onClick={() => setShowForm(true)}
           className="fixed bottom-24 md:bottom-8 right-6 w-16 h-16 bg-indigo-600 text-white rounded-[1.75rem] shadow-2xl shadow-indigo-600/30 flex items-center justify-center hover:bg-indigo-500 transition-all active:scale-90 z-50 group border border-indigo-400/30 backdrop-blur-md"
@@ -392,37 +378,52 @@ export default function App() {
       )}
 
       {/* Bottom Navigation (Mobile Only) */}
-      <nav className="md:hidden fixed bottom-6 left-6 right-6 h-20 bg-glass/90 backdrop-blur-3xl border border-white/10 rounded-[2rem] shadow-2xl z-40 px-8 flex items-center justify-between">
-        <button
-          onClick={() => setActiveTab('dashboard')}
-          className={cn(
-            "flex flex-col items-center gap-2 transition-all",
-            activeTab === 'dashboard' ? "text-indigo-400" : "text-slate-500"
-          )}
-        >
-          <LayoutDashboard size={24} />
-          <span className="text-[8px] font-black uppercase tracking-[0.2em]">Beranda</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('transactions')}
-          className={cn(
-            "flex flex-col items-center gap-2 transition-all",
-            activeTab === 'transactions' ? "text-indigo-400" : "text-slate-500"
-          )}
-        >
-          <History size={24} />
-          <span className="text-[8px] font-black uppercase tracking-[0.2em]">Transaksi</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('settings')}
-          className={cn(
-            "flex flex-col items-center gap-2 transition-all",
-            activeTab === 'settings' ? "text-indigo-400" : "text-slate-500"
-          )}
-        >
-          <SettingsIcon size={24} />
-          <span className="text-[8px] font-black uppercase tracking-[0.2em]">Setelan</span>
-        </button>
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-18 bg-white border-t border-gray-100 z-40 px-4 flex items-center justify-between shadow-[0_-4px_20px_rgba(0,0,0,0.03)]">
+        {activeTab === 'dashboard' ? (
+          <div className="flex items-center justify-end w-full">
+            <button
+              onClick={() => setActiveTab('transactions')}
+              className="w-12 h-12 flex items-center justify-center text-slate-300 hover:text-blue-600 transition-colors"
+            >
+              <ChevronRight size={24} strokeWidth={3} />
+            </button>
+          </div>
+        ) : (
+          <div className="flex-1 flex items-center justify-around px-4">
+            <button
+              onClick={() => setActiveTab('dashboard')}
+              className={cn(
+                "flex flex-col items-center gap-1 transition-all min-w-[64px]",
+                activeTab === 'dashboard' ? "text-blue-600" : "text-slate-400"
+              )}
+            >
+              <LayoutDashboard size={22} strokeWidth={activeTab === 'dashboard' ? 2.5 : 2} />
+              <span className="text-[9px] font-black uppercase tracking-wider">Beranda</span>
+            </button>
+            
+            <button
+              onClick={() => setActiveTab('transactions')}
+              className={cn(
+                "flex flex-col items-center gap-1 transition-all min-w-[64px]",
+                activeTab === 'transactions' ? "text-indigo-600" : "text-slate-400"
+              )}
+            >
+              <History size={22} />
+              <span className="text-[9px] font-black uppercase tracking-wider">Transaksi</span>
+            </button>
+            
+            <button
+              onClick={() => setActiveTab('settings')}
+              className={cn(
+                "flex flex-col items-center gap-1 transition-all min-w-[64px]",
+                activeTab === 'settings' ? "text-indigo-600" : "text-slate-400"
+              )}
+            >
+              <SettingsIcon size={22} />
+              <span className="text-[9px] font-black uppercase tracking-wider">Setelan</span>
+            </button>
+          </div>
+        )}
       </nav>
 
       {/* Modals */}
@@ -444,23 +445,6 @@ export default function App() {
           userTitle={userTitle}
         />
       )}
-
-      {/* Sync Notification */}
-      <AnimatePresence>
-        {showSyncNotice && (
-          <motion.div
-            initial={{ opacity: 0, y: 50, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.9 }}
-            className="fixed bottom-32 md:bottom-24 left-1/2 -translate-x-1/2 z-[60] bg-gray-900 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-white/10"
-          >
-            <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-              <CheckCircle2 size={14} className="text-white" />
-            </div>
-            <span className="text-sm font-bold tracking-tight">Data tersinkronisasi</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

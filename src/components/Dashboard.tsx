@@ -73,7 +73,7 @@ export default function Dashboard({ transactions, communityData }: DashboardProp
     : `${selectedMonth !== 'all' ? months[selectedMonth] : ''} ${selectedYear !== 'all' ? selectedYear : ''}`.trim();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6 md:p-8 max-w-full mx-auto">
       {/* Filters */}
       <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
         <div className="space-y-6">
