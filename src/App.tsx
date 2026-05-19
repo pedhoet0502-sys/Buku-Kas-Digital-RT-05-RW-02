@@ -4,7 +4,7 @@ import { onAuthStateChanged, User } from 'firebase/auth';
 import { db, auth, loginWithGoogle, logout } from './lib/firebase';
 import { handleFirestoreError, OperationType } from './lib/firestoreErrorHandler';
 import { motion } from 'motion/react';
-import { Plus, LogOut, LayoutDashboard, Cloud, History, User as UserIcon, LogIn, Settings as SettingsIcon, CheckCircle2, XCircle, ChevronRight } from 'lucide-react';
+import { Plus, LogOut, LayoutDashboard, Cloud, History, User as UserIcon, LogIn, Settings as SettingsIcon, CheckCircle2, XCircle, ChevronRight, ChevronLeft, NotebookPen } from 'lucide-react';
 import { cn } from './lib/utils';
 import Dashboard from './components/Dashboard';
 import TransactionList from './components/TransactionList';
@@ -231,38 +231,41 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gray-50 pb-24 md:pb-8">
       {/* Header */}
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-40">
-        <div className={cn(
-          "mx-auto px-6 h-18 flex items-center justify-between",
-          (activeTab === 'transactions' || activeTab === 'dashboard') ? "max-w-full" : "max-w-5xl"
-        )}>
-          <div className="flex items-center gap-3">
-            <div className="text-blue-600 group hover:scale-110 transition-transform">
-              <LayoutDashboard size={24} strokeWidth={2} />
+      <header className="bg-white/80 backdrop-blur-xl border-b border-gray-100 sticky top-0 z-40">
+        <div className="mx-auto px-6 py-4 md:py-6 flex items-center justify-between max-w-full">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center shadow-sm">
+              {activeTab === 'dashboard' && <LayoutDashboard size={24} strokeWidth={2.5} />}
+              {activeTab === 'transactions' && <NotebookPen size={24} strokeWidth={2.5} />}
+              {activeTab === 'settings' && <SettingsIcon size={24} strokeWidth={2.5} />}
             </div>
             <div className="flex flex-col">
-              <span className="font-black text-gray-900 tracking-tight text-lg uppercase leading-none">KAS RT DIGITAL</span>
-              <span className="text-[10px] font-bold text-slate-400 tracking-[0.2em] mt-1">RT 05 RW 02</span>
+              <h1 className="font-black text-gray-900 tracking-tight text-lg uppercase leading-none">
+                {activeTab === 'dashboard' ? 'KAS RT DIGITAL' : activeTab === 'transactions' ? 'TRANSAKSI' : 'PENGATURAN'}
+              </h1>
+              <span className="text-[10px] font-bold text-blue-600 tracking-[0.2em] mt-1">
+                {activeTab === 'dashboard' ? 'RT 05 RW 02' : activeTab === 'transactions' ? `${transactions.length} TOTAL TRANSAKSI` : 'KONFIGURASI SISTEM'}
+              </span>
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 bg-emerald-50/50 px-3 py-1.5 rounded-full border border-emerald-100/50">
+            <div className="hidden sm:flex items-center gap-2 bg-emerald-50/50 px-3 py-1.5 rounded-full border border-emerald-100/50">
               <motion.div
                 animate={{ opacity: [1, 0.4, 1] }}
                 transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
               >
                 <Cloud size={14} className="text-emerald-500 fill-emerald-500/10" />
               </motion.div>
-              <span className="text-[10px] font-black text-emerald-600 tracking-tight">98% CLOUD</span>
+              <span className="text-[10px] font-black text-emerald-600 tracking-tight uppercase">98% Cloud</span>
             </div>
             <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-full border border-gray-100">
-              <div className="w-6 h-6 rounded-full overflow-hidden bg-indigo-100">
+              <div className="w-6 h-6 rounded-full overflow-hidden bg-indigo-100 ring-2 ring-white">
                 {user.photoURL ? <img src={user.photoURL} alt="" /> : <UserIcon size={14} className="m-auto text-indigo-400 mt-1" />}
               </div>
               <div className="flex flex-col">
                 <span className="text-[10px] font-bold text-gray-700 truncate max-w-[100px] leading-tight">{user.displayName || 'Pengurus'}</span>
                 {userTitle && (
-                  <span className="text-[9px] font-black text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded mt-0.5 uppercase tracking-wide leading-none w-fit">
+                  <span className="text-[9px] font-black text-indigo-600 mt-0.5 uppercase tracking-wide leading-none w-fit">
                     {userTitle}
                   </span>
                 )}
@@ -270,7 +273,7 @@ export default function App() {
             </div>
             <button
               onClick={handleLogout}
-              className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-xl transition-all"
+              className="p-2.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-xl transition-all active:scale-95"
               title="Keluar"
             >
               <LogOut size={20} />
@@ -279,46 +282,8 @@ export default function App() {
         </div>
       </header>
 
-      <main className={cn(
-        "mx-auto space-y-8 transition-all duration-300",
-        (activeTab === 'transactions' || activeTab === 'dashboard') ? "max-w-full p-0 space-y-0" : "max-w-5xl p-6"
-      )}>
-        {/* Navigation Tabs (Desktop) */}
-        <div className={cn(
-          "hidden md:flex bg-gray-100/50 p-1 rounded-xl w-fit border border-gray-100",
-          (activeTab === 'transactions' || activeTab === 'dashboard') ? "mx-auto my-6" : ""
-        )}>
-          <button
-            onClick={() => setActiveTab('dashboard')}
-            className={cn(
-              "px-6 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2",
-              activeTab === 'dashboard' ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
-            )}
-          >
-            <LayoutDashboard size={18} strokeWidth={2} />
-            Beranda
-          </button>
-          <button
-            onClick={() => setActiveTab('transactions')}
-            className={cn(
-              "px-6 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2",
-              activeTab === 'transactions' ? "bg-white text-indigo-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
-            )}
-          >
-            <History size={18} />
-            Transaksi
-          </button>
-          <button
-            onClick={() => setActiveTab('settings')}
-            className={cn(
-              "px-6 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2",
-              activeTab === 'settings' ? "bg-white text-indigo-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
-            )}
-          >
-            <SettingsIcon size={18} />
-            Setelan
-          </button>
-        </div>
+      <main className="mx-auto space-y-0 transition-all duration-300 max-w-full p-0">
+        {/* Navigation Tabs (Desktop Icons removed per user request for consistency) */}
 
         {/* Content */}
         <AnimatePresence mode="wait">
@@ -367,60 +332,61 @@ export default function App() {
         </AnimatePresence>
       </main>
 
-      {/* Floating Action Button (Mobile & Desktop) */}
-      {communityRole === 'admin' && activeTab !== 'dashboard' && (
+      {/* Floating Action Button (Mobile & Desktop) - Removed as requested */}
+      {/* {communityRole === 'admin' && activeTab !== 'dashboard' && (
         <button
           onClick={() => setShowForm(true)}
           className="fixed bottom-24 md:bottom-8 right-6 w-16 h-16 bg-indigo-600 text-white rounded-[1.75rem] shadow-2xl shadow-indigo-600/30 flex items-center justify-center hover:bg-indigo-500 transition-all active:scale-90 z-50 group border border-indigo-400/30 backdrop-blur-md"
         >
           <Plus size={36} className="group-hover:rotate-180 transition-transform duration-500" />
         </button>
-      )}
+      )} */}
 
       {/* Bottom Navigation (Mobile Only) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-18 bg-white border-t border-gray-100 z-40 px-4 flex items-center justify-between shadow-[0_-4px_20px_rgba(0,0,0,0.03)]">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-18 bg-white border-t border-gray-100 z-40 px-6 flex items-center justify-between shadow-[0_-4px_20px_rgba(0,0,0,0.03)]">
         {activeTab === 'dashboard' ? (
-          <div className="flex items-center justify-end w-full">
+          <div className="flex items-center justify-between w-full">
+            <button
+              onClick={() => setActiveTab('transactions')}
+              className="w-12 h-12 flex items-center justify-center text-blue-600 transition-colors"
+            >
+              <ChevronRight size={24} strokeWidth={3} />
+            </button>
+            <button
+              onClick={() => setActiveTab('settings')}
+              className="w-12 h-12 flex items-center justify-center text-slate-300 hover:text-blue-600 transition-colors"
+            >
+              <ChevronLeft size={24} strokeWidth={3} />
+            </button>
+          </div>
+        ) : activeTab === 'transactions' ? (
+          <div className="flex items-center justify-between w-full">
+            <button
+              onClick={() => setActiveTab('settings')}
+              className="w-12 h-12 flex items-center justify-center text-blue-600 transition-colors"
+            >
+              <ChevronRight size={24} strokeWidth={3} />
+            </button>
+            <button
+              onClick={() => setActiveTab('dashboard')}
+              className="w-12 h-12 flex items-center justify-center text-slate-300 hover:text-blue-600 transition-colors"
+            >
+              <ChevronLeft size={24} strokeWidth={3} />
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between w-full">
+            <button
+              onClick={() => setActiveTab('dashboard')}
+              className="w-12 h-12 flex items-center justify-center text-blue-600 transition-colors"
+            >
+              <ChevronRight size={24} strokeWidth={3} />
+            </button>
             <button
               onClick={() => setActiveTab('transactions')}
               className="w-12 h-12 flex items-center justify-center text-slate-300 hover:text-blue-600 transition-colors"
             >
-              <ChevronRight size={24} strokeWidth={3} />
-            </button>
-          </div>
-        ) : (
-          <div className="flex-1 flex items-center justify-around px-4">
-            <button
-              onClick={() => setActiveTab('dashboard')}
-              className={cn(
-                "flex flex-col items-center gap-1 transition-all min-w-[64px]",
-                activeTab === 'dashboard' ? "text-blue-600" : "text-slate-400"
-              )}
-            >
-              <LayoutDashboard size={22} strokeWidth={activeTab === 'dashboard' ? 2.5 : 2} />
-              <span className="text-[9px] font-black uppercase tracking-wider">Beranda</span>
-            </button>
-            
-            <button
-              onClick={() => setActiveTab('transactions')}
-              className={cn(
-                "flex flex-col items-center gap-1 transition-all min-w-[64px]",
-                activeTab === 'transactions' ? "text-indigo-600" : "text-slate-400"
-              )}
-            >
-              <History size={22} />
-              <span className="text-[9px] font-black uppercase tracking-wider">Transaksi</span>
-            </button>
-            
-            <button
-              onClick={() => setActiveTab('settings')}
-              className={cn(
-                "flex flex-col items-center gap-1 transition-all min-w-[64px]",
-                activeTab === 'settings' ? "text-indigo-600" : "text-slate-400"
-              )}
-            >
-              <SettingsIcon size={22} />
-              <span className="text-[9px] font-black uppercase tracking-wider">Setelan</span>
+              <ChevronLeft size={24} strokeWidth={3} />
             </button>
           </div>
         )}

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { formatCurrency } from '@/src/lib/utils';
-import { TrendingUp, TrendingDown, Wallet, Download, Eye, Calendar, Filter, ChevronDown, RotateCcw } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, Download, Eye, Calendar, Filter, ChevronDown, RotateCcw, Sliders } from 'lucide-react';
 import { generateMonthlyReport } from '@/src/lib/pdfGenerator';
 import ReportPreview from './ReportPreview';
 
@@ -73,61 +73,67 @@ export default function Dashboard({ transactions, communityData }: DashboardProp
     : `${selectedMonth !== 'all' ? months[selectedMonth] : ''} ${selectedYear !== 'all' ? selectedYear : ''}`.trim();
 
   return (
-    <div className="space-y-6 p-6 md:p-8 max-w-full mx-auto">
-      {/* Filters */}
-      <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
-        <div className="space-y-6">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <h2 className="text-xl font-bold text-gray-900">Laporan Kas</h2>
-              <p className="text-sm text-gray-500 font-medium">{periodTitle}</p>
+    <div className="space-y-8 max-w-full mx-auto pb-32">
+      {/* Filters - Simplified & Sticky */}
+      <div className="sticky top-[72px] md:top-[88px] z-30 bg-white/95 backdrop-blur-sm px-6 py-6 md:px-8 border-b border-gray-100 shadow-sm transition-all">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 max-w-full mx-auto">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
+              <Sliders size={20} />
             </div>
+            <div>
+              <h2 className="text-lg font-bold text-gray-900 leading-none">Laporan Kas</h2>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">{periodTitle}</p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <select 
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
+                className="pl-4 pr-10 py-2.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-900 appearance-none outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500/30 transition-all cursor-pointer min-w-[140px]"
+              >
+                <option value="all">Bulan</option>
+                {months.map((m, i) => (
+                  <option key={m} value={i}>{m}</option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14} />
+            </div>
+
+            <div className="relative">
+              <select 
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
+                className="pl-4 pr-10 py-2.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-900 appearance-none outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500/30 transition-all cursor-pointer min-w-[110px]"
+              >
+                <option value="all">Tahun</option>
+                {years.map(y => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14} />
+            </div>
+
             <button 
               onClick={() => {
                 setSelectedMonth('all');
                 setSelectedYear('all');
               }}
-              className="p-2.5 bg-gray-50 border border-gray-100 text-blue-600 hover:bg-blue-50 rounded-xl transition-all active:scale-95"
+              className="p-2.5 bg-white border border-gray-200 text-slate-400 hover:text-blue-600 rounded-xl transition-all active:scale-95 shadow-sm"
               title="Reset Filter"
             >
-              <RotateCcw size={20} />
+              <RotateCcw size={18} />
             </button>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <div className="relative group">
-              <select 
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
-                className="w-full pl-4 pr-10 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-gray-900 appearance-none outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500/30 transition-all cursor-pointer"
-              >
-                <option value="all">Pilih Bulan</option>
-                {months.map((m, i) => (
-                  <option key={m} value={i}>{m}</option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
-            </div>
-
-            <div className="relative group">
-              <select 
-                value={selectedYear}
-                onChange={(e) => setSelectedYear(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
-                className="w-full pl-4 pr-10 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-gray-900 appearance-none outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500/30 transition-all cursor-pointer"
-              >
-                <option value="all">Pilih Tahun</option>
-                {years.map(y => (
-                  <option key={y} value={y}>{y}</option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
-            </div>
           </div>
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Main Content Area with horizontal padding */}
+      <div className="px-6 md:px-8 space-y-8">
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
           <div className="p-4 bg-indigo-50 text-indigo-600 rounded-xl">
             <Wallet size={24} />
@@ -170,8 +176,8 @@ export default function Dashboard({ transactions, communityData }: DashboardProp
         </div>
       </div>
 
-      {/* Chart */}
-      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        {/* Chart Section */}
+        <div className="bg-white p-6 md:p-8 rounded-[2.5rem] shadow-sm border border-gray-100">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div>
             <h3 className="text-lg font-bold text-gray-900">Grafik Saldo</h3>
@@ -243,6 +249,7 @@ export default function Dashboard({ transactions, communityData }: DashboardProp
           )}
         </div>
       </div>
+    </div>
 
       {showPreview && (
         <ReportPreview 

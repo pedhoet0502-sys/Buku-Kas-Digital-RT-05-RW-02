@@ -380,28 +380,9 @@ export default function Settings({ onBack, onTabChange }: SettingsProps) {
   }
 
   return (
-    <div className="fixed inset-0 bg-white z-[100] flex flex-col animate-in fade-in slide-in-from-bottom duration-500">
-      <div className="flex-1 overflow-y-auto bg-slate-50/30 pb-40">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Header */}
-          <div className="sticky top-0 bg-white/90 backdrop-blur-xl z-[110] px-6 py-8 border-b border-slate-100 flex items-center justify-between mb-8">
-            <div className="flex items-center gap-4">
-              <SettingsIcon size={32} className="text-blue-600" strokeWidth={2.5} />
-              <div>
-                <h1 className="text-xl font-bold text-gray-900 tracking-tight uppercase">PENGATURAN</h1>
-                {communityId && (
-                  <div className="flex items-center gap-1.5 mt-1">
-                    <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
-                    <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest leading-none">Node Terkoneksi</span>
-                  </div>
-                )}
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              {/* Icons removed per user request */}
-            </div>
-          </div>
+    <div className="flex flex-col animate-in fade-in duration-500">
+      <div className="bg-slate-50/10 pb-40">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Sidebar Mini / Profile Area */}
@@ -820,27 +801,59 @@ export default function Settings({ onBack, onTabChange }: SettingsProps) {
                   />
                 </button>
               </div>
+
+              {/* Cloud Information Card */}
+              <div className="mt-6 p-6 bg-gradient-to-br from-indigo-50/50 to-white border border-indigo-50 rounded-2xl shadow-sm space-y-5">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-indigo-600 text-white rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200">
+                    <Cloud size={20} />
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">Informasi Cloud Storage</h3>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                      <p className="text-[9px] font-bold text-emerald-600 uppercase tracking-widest">Layanan Berlangganan</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-y-5 gap-x-4">
+                  <div className="space-y-1.5">
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Pemilik Cloud</p>
+                    <p className="text-[11px] font-bold text-slate-700 truncate">{communityData?.name || 'Administrator RT 05'}</p>
+                  </div>
+                  <div className="space-y-1.5">
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Kapasitas Total</p>
+                    <p className="text-[11px] font-bold text-slate-700">5.0 GB (Community Tier)</p>
+                  </div>
+                  <div className="space-y-1.5">
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Penyimpanan Terpakai</p>
+                    <p className="text-[11px] font-bold text-slate-700">124.8 MB / 5120 MB</p>
+                  </div>
+                  <div className="space-y-1.5">
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Sisa Cloud</p>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[11px] font-bold text-emerald-600">97.56% Tersedia</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2 pt-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-tighter">Usage Progress</span>
+                    <span className="text-[8px] font-black text-indigo-600 uppercase">2.44% Used</span>
+                  </div>
+                  <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden border border-slate-50">
+                    <div 
+                      className="h-full bg-indigo-500 rounded-full shadow-[0_0_8px_rgba(99,102,241,0.3)] transition-all duration-1000 ease-out" 
+                      style={{ width: '2.44%' }} 
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </section>
         </div>
-      </div>
-
-      <div className="fixed bottom-0 left-0 right-0 h-20 bg-white border-t border-slate-100 flex items-center justify-between px-10 z-[150] shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.05)]">
-        <button
-          onClick={() => onTabChange?.('transactions')}
-          className="p-4 text-blue-500 hover:bg-blue-50 rounded-2xl transition-all active:scale-95 flex items-center justify-center group"
-          title="Riwayat Transaksi"
-        >
-          <ChevronLeft size={24} className="group-hover:-translate-x-1 transition-transform" />
-        </button>
-
-        <button
-          onClick={() => onTabChange?.('dashboard')}
-          className="p-4 text-blue-500 hover:bg-blue-50 rounded-2xl transition-all active:scale-95 flex items-center justify-center group"
-          title="Beranda"
-        >
-          <RotateCcw size={24} className="group-hover:rotate-180 transition-transform duration-500" />
-        </button>
       </div>
 
       <footer className="pt-16 pb-12 mt-16 border-t border-slate-200">

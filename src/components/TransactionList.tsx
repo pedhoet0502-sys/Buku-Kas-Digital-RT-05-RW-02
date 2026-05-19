@@ -19,7 +19,8 @@ import {
   Filter,
   FileText,
   Clock,
-  NotebookPen
+  NotebookPen,
+  Sliders
 } from 'lucide-react';
 import { format, isToday, isYesterday } from 'date-fns';
 import { id } from 'date-fns/locale';
@@ -133,23 +134,26 @@ export default function TransactionList({ transactions, customCategories, curren
 
   return (
     <>
-      <div className="fixed inset-0 bg-white z-[100] flex flex-col animate-in fade-in slide-in-from-bottom duration-500">
-        <div className="flex-1 overflow-y-auto bg-slate-50/30 pb-40">
+      <div className="flex flex-col animate-in fade-in duration-500">
+        <div className="bg-slate-50/10 pb-40">
           <div className="max-w-full mx-auto">
-            <div className="sticky top-0 bg-white/90 backdrop-blur-xl z-[110] px-6 py-8 border-b border-slate-100 flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
+            {/* Control Panel - Sticky and Below Global Header */}
+            <div className="sticky top-[72px] md:top-[88px] z-30 px-6 py-6 border-b border-gray-100 flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8 bg-white/95 backdrop-blur-md shadow-sm transition-all">
               <div className="flex items-center justify-between w-full lg:w-auto">
                 <div className="flex items-center gap-4">
-                  <NotebookPen size={32} className="text-blue-600" strokeWidth={2.5} />
+                  <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
+                    <Sliders size={20} />
+                  </div>
                   <div>
-                    <h1 className="text-xl font-bold text-gray-900 tracking-tight uppercase leading-none mb-1">TRANSAKSI</h1>
-                    <p className="text-[10px] font-black text-green-600 uppercase tracking-widest">{filteredTransactions.length} Transaksi Ditemukan</p>
+                    <h2 className="text-lg font-bold text-gray-900 leading-none">Riwayat Transaksi</h2>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Cari dan urutkan data</p>
                   </div>
                 </div>
                 
                 {currentRole === 'admin' && (
                   <button 
                     onClick={onAdd}
-                    className="lg:hidden w-11 h-11 bg-blue-600 text-white rounded-xl flex items-center justify-center shadow-lg shadow-blue-100 active:scale-95"
+                    className="lg:hidden w-11 h-11 bg-blue-600 text-white rounded-xl flex items-center justify-center shadow-lg active:scale-95"
                   >
                     <Plus size={24} />
                   </button>
@@ -182,7 +186,7 @@ export default function TransactionList({ transactions, customCategories, curren
                         )}
                         title="Filter Transaksi"
                       >
-                        <Filter size={20} />
+                        <Sliders size={20} />
                       </button>
 
                       <button 
@@ -410,23 +414,6 @@ export default function TransactionList({ transactions, customCategories, curren
           </div>
         </div>
 
-        <div className="fixed bottom-0 left-0 right-0 h-20 bg-white border-t border-slate-100 flex items-center justify-between px-10 z-[150] shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.05)]">
-          <button
-            onClick={() => onTabChange?.('dashboard')}
-            className="p-4 text-blue-500 hover:bg-blue-50 rounded-2xl transition-all active:scale-95 flex items-center justify-center group"
-            title="Beranda"
-          >
-            <ChevronLeft size={24} className="group-hover:-translate-x-1 transition-transform" />
-          </button>
-
-          <button
-            onClick={() => onTabChange?.('settings')}
-            className="p-4 text-blue-500 hover:bg-blue-50 rounded-2xl transition-all active:scale-95 flex items-center justify-center group"
-            title="Pengaturan"
-          >
-            <ChevronRight size={24} className="group-hover:translate-x-1 transition-transform" />
-          </button>
-        </div>
       </div>
 
       {selectedTransaction && (
