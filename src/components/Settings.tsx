@@ -6,7 +6,7 @@ import {
   Bell, 
   Shield, 
   User as UserIcon, 
-  ArrowLeft, 
+  ChevronLeft, 
   Tag, 
   Plus, 
   X, 
@@ -22,6 +22,8 @@ import {
   LayoutGrid,
   Cloud,
   RefreshCw,
+  LogOut,
+  RotateCcw,
   Save,
   Trash2
 } from 'lucide-react';
@@ -31,9 +33,10 @@ import { motion, AnimatePresence } from 'motion/react';
 
 interface SettingsProps {
   onBack: () => void;
+  onTabChange?: (tab: 'dashboard' | 'transactions' | 'settings') => void;
 }
 
-export default function Settings({ onBack }: SettingsProps) {
+export default function Settings({ onBack, onTabChange }: SettingsProps) {
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [categories, setCategories] = useState<{ income: string[], expense: string[] }>(DEFAULT_CATEGORIES);
   const [communityId, setCommunityId] = useState('');
@@ -339,9 +342,10 @@ export default function Settings({ onBack }: SettingsProps) {
     try {
       if (!window.confirm(`Hapus kategori "${name}"?`)) return;
       
+      const currentCategories = { ...categories };
       const updatedCategories = {
-        ...categories,
-        [type]: categories[type].filter(cat => cat !== name)
+        ...currentCategories,
+        [type]: currentCategories[type].filter(cat => cat !== name)
       };
       
       // Update local state first for better UX
@@ -353,10 +357,14 @@ export default function Settings({ onBack }: SettingsProps) {
       console.error('Error removing category:', error);
       // Revert if failed
       if (auth.currentUser) {
-        const settingsRef = doc(db, 'settings', auth.currentUser.uid);
-        const settingsSnap = await getDoc(settingsRef);
-        if (settingsSnap.exists() && settingsSnap.data().categories) {
-          setCategories(settingsSnap.data().categories);
+        try {
+          const settingsRef = doc(db, 'settings', auth.currentUser.uid);
+          const settingsSnap = await getDoc(settingsRef);
+          if (settingsSnap.exists() && settingsSnap.data().categories) {
+            setCategories(settingsSnap.data().categories);
+          }
+        } catch (e) {
+          console.error('Error reverting categories:', e);
         }
       }
     }
@@ -372,34 +380,28 @@ export default function Settings({ onBack }: SettingsProps) {
   }
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="max-w-5xl mx-auto pb-32 px-4 sm:px-6"
-    >
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-6 pt-12 pb-8 mb-8 border-b border-slate-200">
-        <div className="flex items-center gap-4">
-          <motion.button 
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={onBack}
-            className="p-2.5 bg-white border border-slate-200 hover:border-slate-400 rounded-xl transition-all text-slate-500"
-          >
-            <ArrowLeft size={20} />
-          </motion.button>
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Pengaturan</h1>
-            <p className="text-xs text-slate-500">Konfigurasi akun dan preferensi sistem</p>
+    <div className="fixed inset-0 bg-white z-[100] flex flex-col animate-in fade-in slide-in-from-bottom duration-500">
+      <div className="flex-1 overflow-y-auto bg-slate-50/30 pb-40">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Header */}
+          <div className="sticky top-0 bg-white/90 backdrop-blur-xl z-[110] px-6 py-8 border-b border-slate-100 flex items-center justify-between mb-8">
+            <div className="flex items-center gap-4">
+              <SettingsIcon size={32} className="text-blue-600" strokeWidth={2.5} />
+              <div>
+                <h1 className="text-xl font-bold text-gray-900 tracking-tight uppercase">PENGATURAN</h1>
+                {communityId && (
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                    <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest leading-none">Node Terkoneksi</span>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              {/* Icons removed per user request */}
+            </div>
           </div>
-        </div>
-        {communityId && (
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-100 rounded-lg">
-            <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
-            <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">Node Terkoneksi</span>
-          </div>
-        )}
-      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Sidebar Mini / Profile Area */}
@@ -691,7 +693,18 @@ export default function Settings({ onBack }: SettingsProps) {
                     {categories.income.map(cat => (
                       <div key={cat} className="flex items-center gap-2 pl-3 pr-1.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[10px] font-bold text-slate-700">
                         <span className="uppercase">{cat}</span>
-                        <button onClick={() => removeCategory('income', cat)} className="text-slate-300 hover:text-rose-500"><X size={12} /></button>
+                        <button 
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            removeCategory('income', cat);
+                          }} 
+                          className="text-slate-300 hover:text-rose-500 transition-colors p-0.5"
+                          title="Hapus"
+                        >
+                          <X size={12} />
+                        </button>
                       </div>
                     ))}
                   </div>
@@ -711,7 +724,18 @@ export default function Settings({ onBack }: SettingsProps) {
                     {categories.expense.map(cat => (
                       <div key={cat} className="flex items-center gap-2 pl-3 pr-1.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[10px] font-bold text-slate-700">
                         <span className="uppercase">{cat}</span>
-                        <button onClick={() => removeCategory('expense', cat)} className="text-slate-300 hover:text-rose-500"><X size={12} /></button>
+                        <button 
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            removeCategory('expense', cat);
+                          }} 
+                          className="text-slate-300 hover:text-rose-500 transition-colors p-0.5"
+                          title="Hapus"
+                        >
+                          <X size={12} />
+                        </button>
                       </div>
                     ))}
                   </div>
@@ -801,6 +825,24 @@ export default function Settings({ onBack }: SettingsProps) {
         </div>
       </div>
 
+      <div className="fixed bottom-0 left-0 right-0 h-20 bg-white border-t border-slate-100 flex items-center justify-between px-10 z-[150] shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.05)]">
+        <button
+          onClick={() => onTabChange?.('transactions')}
+          className="p-4 text-blue-500 hover:bg-blue-50 rounded-2xl transition-all active:scale-95 flex items-center justify-center group"
+          title="Riwayat Transaksi"
+        >
+          <ChevronLeft size={24} className="group-hover:-translate-x-1 transition-transform" />
+        </button>
+
+        <button
+          onClick={() => onTabChange?.('dashboard')}
+          className="p-4 text-blue-500 hover:bg-blue-50 rounded-2xl transition-all active:scale-95 flex items-center justify-center group"
+          title="Beranda"
+        >
+          <RotateCcw size={24} className="group-hover:rotate-180 transition-transform duration-500" />
+        </button>
+      </div>
+
       <footer className="pt-16 pb-12 mt-16 border-t border-slate-200">
         <div className="flex flex-col items-center gap-6">
           <div className="flex items-center gap-3 grayscale opacity-50">
@@ -815,6 +857,8 @@ export default function Settings({ onBack }: SettingsProps) {
           <p className="text-[9px] font-medium text-slate-300 uppercase tracking-widest">© 2026 Powered by Cloud Node Tech</p>
         </div>
       </footer>
-    </motion.div>
+    </div>
+  </div>
+</div>
   );
 }

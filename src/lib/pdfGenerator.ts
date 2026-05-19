@@ -4,7 +4,7 @@ import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { formatCurrency, formatNumber } from './utils';
 
-export const getMonthlyReportPdf = (transactions: any[], communityData?: any, period?: { month: number, year: number }) => {
+export const getMonthlyReportPdf = (transactions: any[], communityData?: any, period?: { month: number, year: number }, initialBalance: number = 0) => {
   const doc = new jsPDF() as any;
   const now = new Date();
   const reportDate = period 
@@ -30,31 +30,38 @@ export const getMonthlyReportPdf = (transactions: any[], communityData?: any, pe
   doc.line(20, 42, 190, 42);
 
   // Table row preparation with running balance
-  let runningBalance = 0;
-  const tableRows = transactions
+  let runningBalance = initialBalance;
+  const sortedTransactions = transactions
     .slice()
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()) // Sort chronological for balance
-    .map((t, index) => {
-      if (t.type === 'income') runningBalance += t.amount;
-      else runningBalance -= t.amount;
-      
-      return {
-        no: index + 1,
-        date: format(new Date(t.date), 'dd/MM/yy'),
-        description: t.description || t.category || '-',
-        income: t.type === 'income' ? formatNumber(t.amount) : '-',
-        expense: t.type === 'expense' ? formatNumber(t.amount) : '-',
-        balance: formatNumber(Math.abs(runningBalance))
-      };
-    })
-    .map((r) => [
-      r.no,
-      r.date,
-      r.description,
-      r.income,
-      r.expense,
-      r.balance
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+  const tableRows: any[][] = [];
+
+  // Add initial balance row if period is selected
+  if (period || initialBalance !== 0) {
+    tableRows.push([
+      '',
+      '-',
+      'SALDO BULAN SEBELUMNYA',
+      '-',
+      '-',
+      formatNumber(Math.abs(initialBalance))
     ]);
+  }
+
+  sortedTransactions.forEach((t, index) => {
+    if (t.type === 'income') runningBalance += t.amount;
+    else runningBalance -= t.amount;
+    
+    tableRows.push([
+      index + 1,
+      format(new Date(t.date), 'dd/MM/yy'),
+      t.description || t.category || '-',
+      t.type === 'income' ? formatNumber(t.amount) : '-',
+      t.type === 'expense' ? formatNumber(t.amount) : '-',
+      formatNumber(Math.abs(runningBalance))
+    ]);
+  });
 
   autoTable(doc, {
     startY: 50,
@@ -114,8 +121,8 @@ export const getMonthlyReportPdf = (transactions: any[], communityData?: any, pe
   return doc;
 };
 
-export const generateMonthlyReport = (transactions: any[], communityData?: any, period?: { month: number, year: number }) => {
-  const doc = getMonthlyReportPdf(transactions, communityData, period);
+export const generateMonthlyReport = (transactions: any[], communityData?: any, period?: { month: number, year: number }, initialBalance: number = 0) => {
+  const doc = getMonthlyReportPdf(transactions, communityData, period, initialBalance);
   const now = period ? new Date(period.year, period.month, 1) : new Date();
   const monthName = format(now, 'MMMM yyyy', { locale: id });
   doc.save(`Laporan_Kas_RT_${monthName.replace(' ', '_')}.pdf`);

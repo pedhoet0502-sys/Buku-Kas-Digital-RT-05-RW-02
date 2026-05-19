@@ -37,13 +37,20 @@ export default function Dashboard({ transactions, communityData }: DashboardProp
     .filter(t => t.type === 'expense')
     .reduce((acc, curr) => acc + curr.amount, 0);
 
-  const balance = totalIncome - totalExpense;
+  const previousBalance = transactions
+    .filter(t => {
+      const d = new Date(t.date);
+      if (selectedYear === 'all') return false;
+      if (d.getFullYear() < selectedYear) return true;
+      if (d.getFullYear() === selectedYear && selectedMonth !== 'all' && d.getMonth() < selectedMonth) return true;
+      return false;
+    })
+    .reduce((acc, curr) => acc + (curr.type === 'income' ? curr.amount : -curr.amount), 0);
 
-  // Prepare chart data for all transactions to show overall trend, 
-  // or maybe just the filtered ones? Let's show overall trend for context but highlight selected?
-  // User asked for "filter per bulan Dan per tahun untuk laporan keuangan (pdf)".
-  // For the dashboard itself, it's better if it shows the filtered stats.
+  const currentPeriodBalance = totalIncome - totalExpense;
+  const totalBalance = previousBalance + currentPeriodBalance;
 
+  // Prepare chart data starting with previous balance if filter is active
   const chartData = filteredTransactions
     .slice()
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
@@ -55,8 +62,8 @@ export default function Dashboard({ transactions, communityData }: DashboardProp
       if (last && last.date === date) {
         last.balance += amount;
       } else {
-        const prevBalance = last ? last.balance : 0;
-        acc.push({ date, balance: prevBalance + amount });
+        const baseBalance = last ? last.balance : previousBalance;
+        acc.push({ date, balance: baseBalance + amount });
       }
       return acc;
     }, []);
@@ -125,11 +132,16 @@ export default function Dashboard({ transactions, communityData }: DashboardProp
           <div className="p-4 bg-indigo-50 text-indigo-600 rounded-xl">
             <Wallet size={24} />
           </div>
-          <div>
+          <div className="flex-1">
             <p className="text-sm text-gray-500 font-medium">Saldo Kas</p>
             <p className="text-2xl font-bold text-gray-900">
-              {formatCurrency(balance)}
+              {formatCurrency(totalBalance)}
             </p>
+            {(selectedMonth !== 'all' || selectedYear !== 'all') && (
+              <p className="text-sm text-indigo-600 mt-1 font-semibold">
+                Saldo sebelumnya: {formatCurrency(previousBalance)}
+              </p>
+            )}
           </div>
         </div>
 
@@ -174,7 +186,8 @@ export default function Dashboard({ transactions, communityData }: DashboardProp
             </button>
             <button
               onClick={() => generateMonthlyReport(filteredTransactions, communityData, 
-                selectedMonth === 'all' || selectedYear === 'all' ? undefined : { month: selectedMonth, year: selectedYear }
+                selectedMonth === 'all' || selectedYear === 'all' ? undefined : { month: selectedMonth, year: selectedYear },
+                previousBalance
               )}
               className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold text-sm hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100"
             >
@@ -236,6 +249,7 @@ export default function Dashboard({ transactions, communityData }: DashboardProp
           transactions={filteredTransactions} 
           communityData={communityData}
           period={selectedMonth === 'all' || selectedYear === 'all' ? undefined : { month: selectedMonth, year: selectedYear }}
+          initialBalance={previousBalance}
           onClose={() => setShowPreview(false)} 
         />
       )}

@@ -9,14 +9,15 @@ interface ReportPreviewProps {
   transactions: any[];
   communityData: any;
   period?: { month: number, year: number };
+  initialBalance?: number;
   onClose: () => void;
 }
 
-export default function ReportPreview({ transactions, communityData, period, onClose }: ReportPreviewProps) {
+export default function ReportPreview({ transactions, communityData, period, initialBalance = 0, onClose }: ReportPreviewProps) {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    const doc = getMonthlyReportPdf(transactions, communityData, period);
+    const doc = getMonthlyReportPdf(transactions, communityData, period, initialBalance);
     const blob = doc.output('blob');
     const url = URL.createObjectURL(blob);
     setPdfUrl(url);
@@ -24,10 +25,10 @@ export default function ReportPreview({ transactions, communityData, period, onC
     return () => {
       URL.revokeObjectURL(url);
     };
-  }, [transactions, communityData, period]);
+  }, [transactions, communityData, period, initialBalance]);
 
   const handleDownload = () => {
-    const doc = getMonthlyReportPdf(transactions, communityData, period);
+    const doc = getMonthlyReportPdf(transactions, communityData, period, initialBalance);
     const now = period ? new Date(period.year, period.month, 1) : new Date();
     const monthName = format(now, 'MMMM yyyy', { locale: id });
     doc.save(`Laporan_Kas_RT_${monthName.replace(' ', '_')}.pdf`);
@@ -96,33 +97,54 @@ export default function ReportPreview({ transactions, communityData, period, onC
                   </thead>
                   <tbody>
                     {(() => {
-                      let runningBalance = 0;
-                      return transactions
+                      let runningBalance = initialBalance;
+                      const rows = [];
+                      
+                      // Add initial balance row
+                      if (period || initialBalance !== 0) {
+                        rows.push(
+                          <tr key="initial" className="bg-slate-100/50 font-bold italic">
+                            <td className="p-1 px-2 border border-slate-200 text-center font-mono"></td>
+                            <td className="p-1 px-2 border border-slate-200 text-center">-</td>
+                            <td className="p-1 px-2 border border-slate-200 text-slate-500 uppercase tracking-wider text-[9px]">
+                              SALDO BULAN SEBELUMNYA
+                            </td>
+                            <td className="p-1 px-2 border border-slate-200 text-right">-</td>
+                            <td className="p-1 px-2 border border-slate-200 text-right">-</td>
+                            <td className="p-1 px-2 border border-slate-200 text-right font-mono text-slate-900">
+                              {formatNumber(Math.abs(initialBalance))}
+                            </td>
+                          </tr>
+                        );
+                      }
+
+                      const transactionRows = transactions
                         .slice()
                         .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
                         .map((t, i) => {
                           if (t.type === 'income') runningBalance += t.amount;
                           else runningBalance -= t.amount;
-                          return { ...t, currentBalance: runningBalance };
-                        })
-                        .map((t, i) => (
-                          <tr key={t.id} className={i % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-                            <td className="p-1 px-2 border border-slate-200 text-center font-mono">{i + 1}</td>
-                            <td className="p-1 px-2 border border-slate-200 text-center">{format(new Date(t.date), 'dd/MM/yy')}</td>
-                            <td className="p-1 px-2 border border-slate-200 font-medium text-slate-700">
-                              {t.description || t.category || '-'}
-                            </td>
-                            <td className="p-1 px-2 border border-slate-200 text-right text-emerald-600 font-mono font-bold">
-                              {t.type === 'income' ? formatNumber(t.amount) : '-'}
-                            </td>
-                            <td className="p-1 px-2 border border-slate-200 text-right text-rose-600 font-mono font-bold">
-                              {t.type === 'expense' ? formatNumber(t.amount) : '-'}
-                            </td>
-                            <td className="p-1 px-2 border border-slate-200 text-right font-mono font-black text-slate-900 bg-slate-50/30">
-                              {formatNumber(Math.abs(t.currentBalance))}
-                            </td>
-                          </tr>
-                        ));
+                          return (
+                            <tr key={t.id} className={i % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                              <td className="p-1 px-2 border border-slate-200 text-center font-mono">{i + 1}</td>
+                              <td className="p-1 px-2 border border-slate-200 text-center">{format(new Date(t.date), 'dd/MM/yy')}</td>
+                              <td className="p-1 px-2 border border-slate-200 font-medium text-slate-700">
+                                {t.description || t.category || '-'}
+                              </td>
+                              <td className="p-1 px-2 border border-slate-200 text-right text-emerald-600 font-mono font-bold">
+                                {t.type === 'income' ? formatNumber(t.amount) : '-'}
+                              </td>
+                              <td className="p-1 px-2 border border-slate-200 text-right text-rose-600 font-mono font-bold">
+                                {t.type === 'expense' ? formatNumber(t.amount) : '-'}
+                              </td>
+                              <td className="p-1 px-2 border border-slate-200 text-right font-mono font-black text-slate-900 bg-slate-50/30">
+                                {formatNumber(Math.abs(runningBalance))}
+                              </td>
+                            </tr>
+                          );
+                        });
+                      
+                      return [...rows, ...transactionRows];
                     })()}
                   </tbody>
                 </table>

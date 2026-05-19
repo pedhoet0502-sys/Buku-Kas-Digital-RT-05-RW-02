@@ -245,7 +245,10 @@ export default function App() {
     <div className="min-h-screen bg-gray-50 pb-24 md:pb-8">
       {/* Header */}
       <header className="bg-white border-b border-gray-100 sticky top-0 z-40 transition-all">
-        <div className="max-w-5xl mx-auto px-6 h-18 flex items-center justify-between">
+        <div className={cn(
+          "mx-auto px-6 h-18 flex items-center justify-between transition-all duration-300",
+          activeTab === 'transactions' ? "max-w-full" : "max-w-5xl"
+        )}>
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white">
               <LayoutDashboard size={18} strokeWidth={3} />
@@ -290,9 +293,15 @@ export default function App() {
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto p-6 space-y-8">
+      <main className={cn(
+        "mx-auto space-y-8 transition-all duration-300",
+        activeTab === 'transactions' ? "max-w-full p-0 space-y-0" : "max-w-5xl p-6"
+      )}>
         {/* Navigation Tabs (Desktop) */}
-        <div className="hidden md:flex bg-gray-100/50 p-1 rounded-xl w-fit border border-gray-100">
+        <div className={cn(
+          "hidden md:flex bg-gray-100/50 p-1 rounded-xl w-fit border border-gray-100",
+          activeTab === 'transactions' ? "mx-auto my-6" : ""
+        )}>
           <button
             onClick={() => setActiveTab('dashboard')}
             className={cn(
@@ -326,18 +335,50 @@ export default function App() {
         </div>
 
         {/* Content */}
-        {activeTab === 'dashboard' && <Dashboard transactions={transactions} communityData={communityData} />}
-        {activeTab === 'transactions' && (
-          <TransactionList 
-            transactions={transactions} 
-            customCategories={categories}
-            currentCommunityId={communityId}
-            currentRole={communityRole}
-            memberTitles={communityTitles}
-            currentUserTitle={userTitle}
-          />
-        )}
-        {activeTab === 'settings' && <Settings onBack={() => setActiveTab('dashboard')} />}
+        <AnimatePresence mode="wait">
+          {activeTab === 'dashboard' && (
+            <motion.div
+              key="dashboard"
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 10 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+            >
+              <Dashboard transactions={transactions} communityData={communityData} />
+            </motion.div>
+          )}
+          {activeTab === 'transactions' && (
+            <motion.div
+              key="transactions"
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 10 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+            >
+              <TransactionList 
+                transactions={transactions} 
+                customCategories={categories}
+                currentCommunityId={communityId}
+                currentRole={communityRole}
+                memberTitles={communityTitles}
+                currentUserTitle={userTitle}
+                onTabChange={setActiveTab}
+                onAdd={() => setShowForm(true)}
+              />
+            </motion.div>
+          )}
+          {activeTab === 'settings' && (
+            <motion.div
+              key="settings"
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 10 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+            >
+              <Settings onTabChange={setActiveTab} onBack={() => setActiveTab('dashboard')} />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
 
       {/* Floating Action Button (Mobile & Desktop) */}
