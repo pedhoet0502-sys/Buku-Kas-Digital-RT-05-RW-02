@@ -289,12 +289,15 @@ export default function TransactionList({ transactions, customCategories, curren
                   <div className="flex flex-col">
                     {Object.entries(groupedTransactions).map(([dateKey, transactions], groupIndex) => (
                       <div key={dateKey} className="flex flex-col">
-                        <div className="px-6 py-3 bg-slate-50 border-y border-slate-100 flex items-center justify-between sticky top-[180px] lg:top-[120px] z-10">
-                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                            {getRelativeDateLabel(dateKey)}
-                          </span>
-                          <span className="text-[10px] font-bold text-slate-300">
-                            {transactions.length} Records
+                        <div className="px-6 py-3.5 bg-slate-50 border-y border-slate-100 flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
+                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
+                              {getRelativeDateLabel(dateKey)}
+                            </span>
+                          </div>
+                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest bg-white border border-slate-200 px-2.5 py-1 rounded-full shadow-sm">
+                            {transactions.length} TRANSAKSI
                           </span>
                         </div>
 
@@ -314,27 +317,34 @@ export default function TransactionList({ transactions, customCategories, curren
                                 }}
                                 key={t.id} 
                                 onClick={() => setSelectedTransaction(t)}
-                                className="p-6 hover:bg-slate-50 transition-all flex items-center gap-6 cursor-pointer group origin-left"
+                                className="px-6 py-5 hover:bg-slate-50 transition-all flex items-center gap-5 cursor-pointer group"
                               >
+                                {/* Icon Section */}
                                 <div className={cn(
-                                  "w-12 h-12 rounded-xl shrink-0 flex items-center justify-center transition-transform group-hover:scale-110 shadow-sm",
-                                  t.type === 'income' ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
+                                  "w-12 h-12 rounded-xl shrink-0 flex items-center justify-center transition-all group-hover:scale-110 shadow-sm border",
+                                  t.type === 'income' 
+                                    ? "bg-emerald-50 text-emerald-600 border-emerald-100/50" 
+                                    : "bg-rose-50 text-rose-600 border-rose-100/50"
                                 )}>
-                                  {t.type === 'income' ? <ArrowUpRight size={24} /> : <ArrowDownLeft size={24} />}
+                                  {t.type === 'income' ? <ArrowUpRight size={24} strokeWidth={2.5} /> : <ArrowDownLeft size={24} strokeWidth={2.5} />}
                                 </div>
                                 
                                 <div className="flex-1 min-w-0">
-                                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                                    <div>
-                                      <h4 className="font-bold text-slate-900 truncate uppercase tracking-tight text-lg">{t.category}</h4>
-                                      <p className="text-xs text-slate-400 truncate mt-1 font-medium">
-                                        {t.description || 'Tidak ada keterangan'}
-                                      </p>
+                                  <div className="flex items-start justify-between gap-4 mb-1">
+                                    <div className="min-w-0">
+                                      <h4 className="font-bold text-slate-800 text-[15px] uppercase tracking-tight group-hover:text-blue-600 transition-colors">
+                                        {t.category}
+                                      </h4>
+                                      {t.description && (
+                                        <p className="text-[11px] text-slate-400 mt-1 font-medium leading-relaxed">
+                                          {t.description}
+                                        </p>
+                                      )}
                                     </div>
                                     
-                                    <div className="text-right">
+                                    <div className="text-right shrink-0">
                                       <p className={cn(
-                                        "font-black text-xl leading-tight",
+                                        "font-black text-lg leading-none tabular-nums tracking-tight",
                                         t.type === 'income' ? "text-emerald-600" : "text-rose-600"
                                       )}>
                                         {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount)}
@@ -342,25 +352,31 @@ export default function TransactionList({ transactions, customCategories, curren
                                     </div>
                                   </div>
                                   
-                                  <div className="mt-4 flex flex-wrap items-center gap-3">
-                                    <div className="flex items-center gap-1.5 py-1 px-2.5 bg-slate-50 border border-slate-100 rounded-lg">
-                                      <User size={12} className="text-slate-400" />
-                                      <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wide">
-                                        {t.userName || 'System'}
-                                      </span>
-                                      {(t.userTitle || memberTitles?.[t.userId]) && (
-                                        <span className="text-[9px] bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded font-black uppercase tracking-wider">
-                                          {t.userTitle || memberTitles?.[t.userId]}
+                                  <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-2 py-1 px-2.5 bg-slate-50 border border-slate-100 rounded-lg">
+                                      <div className="w-4 h-4 rounded-full bg-white flex items-center justify-center shadow-[0_1px_2px_rgba(0,0,0,0.05)] border border-slate-100">
+                                        <User size={10} className="text-slate-400" />
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wide">
+                                          {t.userName || 'System'}
                                         </span>
-                                      )}
+                                        {(t.userTitle || memberTitles?.[t.userId]) && (
+                                          <span className="text-[8px] bg-slate-900 text-white px-1.5 py-0.5 rounded font-black uppercase tracking-wider">
+                                            {t.userTitle || memberTitles?.[t.userId]}
+                                          </span>
+                                        )}
+                                      </div>
                                     </div>
                                     
-                                    <div className="flex items-center gap-1 text-slate-300">
-                                      <Clock size={12} />
-                                      <span className="text-[10px] font-bold">{t.createdAt ? format(new Date(t.createdAt?.toDate?.() || t.createdAt), 'HH:mm') : '--:--'}</span>
+                                    <div className="flex items-center gap-1.5 text-slate-400">
+                                      <Clock size={12} strokeWidth={2} />
+                                      <span className="text-[10px] font-bold tabular-nums">
+                                        {t.createdAt ? format(new Date(t.createdAt?.toDate?.() || t.createdAt), 'HH:mm') : '--:--'}
+                                      </span>
                                     </div>
-
-                                    <ChevronRight size={14} className="text-slate-300 ml-auto group-hover:text-blue-400 group-hover:translate-x-1 transition-all" />
+                                    
+                                    <ChevronRight size={14} className="text-slate-300 ml-auto group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
                                   </div>
                                 </div>
                               </motion.div>
