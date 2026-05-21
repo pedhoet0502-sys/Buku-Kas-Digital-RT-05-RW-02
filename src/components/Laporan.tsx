@@ -56,7 +56,10 @@ export default function Laporan({ transactions, communityData, customCategories 
 
   // Breakdown by category
   const categorySummary = filteredTransactions.reduce((acc: { [key: string]: { amount: number, type: 'income' | 'expense' } }, t) => {
-    const cat = t.category || 'Lainnya';
+    let cat = t.category || (t.type === 'income' ? 'Sumber Lain-lain' : 'Biaya Lain-lain');
+    if (cat.toLowerCase() === 'lainnya') {
+      cat = t.type === 'income' ? 'Sumber Lain-lain' : 'Biaya Lain-lain';
+    }
     if (!acc[cat]) {
       acc[cat] = { amount: 0, type: t.type };
     }

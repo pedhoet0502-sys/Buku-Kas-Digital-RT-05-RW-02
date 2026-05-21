@@ -72,7 +72,33 @@ export default function Settings({ onBack, onTabChange }: SettingsProps) {
             loadCommunityData(data.communityId);
           }
           if (data.categories) {
-            setCategories(data.categories);
+            const loadedCats = { ...data.categories };
+            let hasLainnya = false;
+            if (loadedCats.income) {
+              loadedCats.income = loadedCats.income.map((cat: string) => {
+                if (cat.toLowerCase() === 'lainnya') {
+                  hasLainnya = true;
+                  return 'Sumber Lain-lain';
+                }
+                return cat;
+              });
+            }
+            if (loadedCats.expense) {
+              loadedCats.expense = loadedCats.expense.map((cat: string) => {
+                if (cat.toLowerCase() === 'lainnya') {
+                  hasLainnya = true;
+                  return 'Biaya Lain-lain';
+                }
+                return cat;
+              });
+            }
+            setCategories(loadedCats);
+            if (hasLainnya && auth.currentUser) {
+              // Back-save migrated categories to Firestore
+              setDoc(settingsRef, { categories: loadedCats }, { merge: true }).catch(err => {
+                console.error("Failed to back-save migrated categories:", err);
+              });
+            }
           }
         }
       } catch (error) {

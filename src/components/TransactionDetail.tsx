@@ -36,8 +36,8 @@ interface TransactionDetailProps {
 
 export default function TransactionDetail({ transaction, onClose, customCategories, currentCommunityId, currentRole, memberTitles }: TransactionDetailProps) {
   const categories = customCategories || {
-    income: ['Iuran Bulanan', 'Donasi', 'Bunga Bank', 'Lainnya'],
-    expense: ['Kebersihan', 'Keamanan', 'Listrik & Air', 'Perbaikan', 'Acara RT', 'Lainnya'],
+    income: ['Iuran Bulanan', 'Donasi', 'Bunga Bank', 'Sumber Lain-lain'],
+    expense: ['Kebersihan', 'Keamanan', 'Listrik & Air', 'Perbaikan', 'Acara RT', 'Biaya Lain-lain'],
   };
   const [isEditing, setIsEditing] = useState(false);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);

@@ -28,8 +28,8 @@ const formatIndonesianDate = (dateStr: string) => {
 
 export default function TransactionForm({ onClose, customCategories, communityId, userTitle }: TransactionFormProps) {
   const categories = customCategories || {
-    income: ['Iuran Bulanan', 'Donasi', 'Bunga Bank', 'Lainnya'],
-    expense: ['Kebersihan', 'Keamanan', 'Listrik & Air', 'Perbaikan', 'Acara RT', 'Lainnya'],
+    income: ['Iuran Bulanan', 'Donasi', 'Bunga Bank', 'Sumber Lain-lain'],
+    expense: ['Kebersihan', 'Keamanan', 'Listrik & Air', 'Perbaikan', 'Acara RT', 'Biaya Lain-lain'],
   };
   const [type, setType] = useState<'income' | 'expense'>('income');
   const [amount, setAmount] = useState('');

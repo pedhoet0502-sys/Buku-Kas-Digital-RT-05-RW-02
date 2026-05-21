@@ -72,7 +72,18 @@ export default function App() {
             setCommunityId(data.communityId || null);
             
             if (data.categories) {
-              setCategories(data.categories);
+              const loadedCats = { ...data.categories };
+              if (loadedCats.income) {
+                loadedCats.income = loadedCats.income.map((cat: string) => 
+                  cat.toLowerCase() === 'lainnya' ? 'Sumber Lain-lain' : cat
+                );
+              }
+              if (loadedCats.expense) {
+                loadedCats.expense = loadedCats.expense.map((cat: string) => 
+                  cat.toLowerCase() === 'lainnya' ? 'Biaya Lain-lain' : cat
+                );
+              }
+              setCategories(loadedCats);
             }
 
             // Community listener
