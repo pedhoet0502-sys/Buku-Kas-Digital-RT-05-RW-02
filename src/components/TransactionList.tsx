@@ -296,7 +296,7 @@ export default function TransactionList({
                 {sortedTransactions.length > 0 ? (
                   <div className="flex flex-col">
                     {Object.entries(groupedTransactions).map(([dateKey, transactions], groupIndex) => (
-                      <div key={dateKey} className="flex flex-col">
+                      <div key={dateKey} className={cn("flex flex-col", groupIndex > 0 && "mt-7")}>
                         <div className="px-6 py-3.5 bg-slate-50 border-y border-slate-100 flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
@@ -344,7 +344,7 @@ export default function TransactionList({
                                         {t.category}
                                       </h4>
                                       {t.description && (
-                                        <p className="text-[11px] text-slate-400 mt-1 font-medium leading-relaxed">
+                                        <p className="text-[11px] text-slate-400 mt-1 font-medium leading-relaxed line-clamp-3 overflow-hidden text-ellipsis break-words">
                                           {t.description}
                                         </p>
                                       )}
@@ -385,7 +385,7 @@ export default function TransactionList({
                                     </div>
                                   </div>
                                 </div>
-                                <ChevronRight size={14} className="text-slate-300 group-hover:text-blue-500 group-hover:translate-x-1 transition-all shrink-0" />
+                                <ChevronRight size={14} className="text-slate-300 group-hover:text-blue-500 group-hover:translate-x-1 transition-all shrink-0 self-center" />
                               </motion.div>
                             ))}
                           </AnimatePresence>
