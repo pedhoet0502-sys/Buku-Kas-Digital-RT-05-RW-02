@@ -456,12 +456,12 @@ export default function Settings({ onBack, onTabChange }: SettingsProps) {
                       value={tempCommunityId}
                       onChange={(e) => setTempCommunityId(e.target.value)}
                       placeholder="CONTOH: KAS-RT01"
-                      className="flex-1 px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-slate-900/5 focus:border-slate-900 outline-none uppercase font-mono text-lg font-black tracking-widest transition-all"
+                      className="flex-1 px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-slate-900/5 focus:border-slate-900 outline-none uppercase font-mono text-lg font-black tracking-widest transition-all placeholder:text-slate-400"
                     />
                     <button
                       onClick={updateCommunity}
                       disabled={saving || (tempCommunityId.trim().toUpperCase() === communityId)}
-                      className="px-8 py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-indigo-600 disabled:bg-slate-100 disabled:text-slate-300 transition-all shadow-lg active:scale-95"
+                      className="px-8 py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-[#2563EB] disabled:bg-slate-100 disabled:text-slate-500 transition-all shadow-lg active:scale-95"
                     >
                       {saving ? 'PROSES...' : (communityId ? 'UPDATE NODE' : 'CONNECT')}
                     </button>
@@ -493,7 +493,7 @@ export default function Settings({ onBack, onTabChange }: SettingsProps) {
                     <div className="pt-6 border-t border-slate-200 space-y-6">
                       <div className="space-y-4">
                         <div className="space-y-1.5">
-                          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Nama Organisasi</label>
+                          <label className="text-[10px] font-bold text-slate-500 tracking-wider">Nama Organisasi</label>
                           <input 
                             type="text"
                             value={newCommunityName}
@@ -504,7 +504,7 @@ export default function Settings({ onBack, onTabChange }: SettingsProps) {
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div className="space-y-1.5">
-                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Ketua RT / Penanggung Jawab</label>
+                            <label className="text-[10px] font-bold text-slate-500 tracking-wider">Ketua RT / Penanggung Jawab</label>
                             <input 
                               type="text"
                               value={chairmanName}
@@ -514,7 +514,7 @@ export default function Settings({ onBack, onTabChange }: SettingsProps) {
                             />
                           </div>
                           <div className="space-y-1.5">
-                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Bendahara</label>
+                            <label className="text-[10px] font-bold text-slate-500 tracking-wider">Bendahara</label>
                             <input 
                               type="text"
                               value={treasurerName}
@@ -527,7 +527,7 @@ export default function Settings({ onBack, onTabChange }: SettingsProps) {
                       </div>
                       <div className="pt-6 border-t border-slate-200">
                         <div className="flex items-center justify-between mb-4">
-                          <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Otorisasi Jaringan</h3>
+                          <h3 className="text-[10px] font-bold text-slate-500 tracking-wider">Otorisasi Jaringan</h3>
                           <span className="text-[10px] font-medium text-slate-400">{Object.keys(communityData.roles).length} Operator</span>
                         </div>
                         
@@ -586,21 +586,21 @@ export default function Settings({ onBack, onTabChange }: SettingsProps) {
                         <div className="p-6 bg-slate-50 border border-slate-200 rounded-[2rem] space-y-6">
                           <div className="space-y-4">
                             <div className="space-y-2">
-                              <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">
+                              <label className="block text-[10px] font-bold text-slate-500 tracking-wider ml-1">
                                 Rekatkan UID Operator Baru
                               </label>
                               <input
                                 type="text"
                                 value={newMemberUid}
                                 onChange={(e) => setNewMemberUid(e.target.value)}
-                                placeholder="MASUKKAN ATAU REKATKAN UID (64+ KARAKTER)"
-                                className="w-full px-5 py-4 bg-white border border-slate-200 rounded-2xl focus:ring-4 focus:ring-slate-900/5 focus:border-slate-900 outline-none font-mono text-xs font-medium tracking-tight transition-all placeholder:text-slate-300"
+                                placeholder="Masukkan atau rekatkan UID (64+ karakter)"
+                                className="w-full px-5 py-4 bg-white border border-slate-200 rounded-2xl focus:ring-4 focus:ring-slate-900/5 focus:border-slate-900 outline-none font-mono text-xs font-semibold tracking-tight transition-all placeholder:text-slate-500"
                               />
                             </div>
                             
                             <div className="flex flex-col sm:flex-row gap-3">
                               <div className="flex-1 space-y-2">
-                                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">
+                                <label className="block text-[10px] font-bold text-slate-500 tracking-wider ml-1">
                                   Tingkat Otoritas
                                 </label>
                                 <select 
@@ -630,10 +630,10 @@ export default function Settings({ onBack, onTabChange }: SettingsProps) {
                         <button 
                           onClick={updateCommunityMetadata}
                           disabled={saving}
-                          className="w-full sm:w-auto px-12 py-3.5 bg-white border border-blue-600 text-blue-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-50 transition-all shadow-xl shadow-blue-100 flex items-center justify-center gap-2"
+                          className="w-full sm:w-auto px-12 py-3.5 bg-[#2563EB] text-white hover:bg-blue-700 active:scale-95 transition-all shadow-xl shadow-blue-200 flex items-center justify-center gap-2 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-transparent"
                         >
                           {saving ? (
-                            <div className="w-4 h-4 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                           ) : (
                             <>
                               <Save size={14} />
@@ -662,15 +662,15 @@ export default function Settings({ onBack, onTabChange }: SettingsProps) {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Pemasukan</h4>
+                    <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Pemasukan</h4>
                     <button 
                       onClick={() => { setEditingType('income'); setIsAdding(true); }}
-                      className="p-1 text-emerald-600 hover:bg-emerald-50 rounded"
+                      className="p-1 px-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors"
                     >
                       <Plus size={16} />
                     </button>
                   </div>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2 pt-1">
                     {categories.income.map(cat => (
                       <div key={cat} className="flex items-center gap-2 pl-3 pr-1.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[10px] font-bold text-slate-700">
                         <span className="uppercase">{cat}</span>
@@ -693,15 +693,15 @@ export default function Settings({ onBack, onTabChange }: SettingsProps) {
 
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-[10px] font-bold text-rose-600 uppercase tracking-widest">Pengeluaran</h4>
+                    <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Pengeluaran</h4>
                     <button 
                       onClick={() => { setEditingType('expense'); setIsAdding(true); }}
-                      className="p-1 text-rose-600 hover:bg-rose-50 rounded"
+                      className="p-1 px-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors"
                     >
                       <Plus size={16} />
                     </button>
                   </div>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2 pt-2">
                     {categories.expense.map(cat => (
                       <div key={cat} className="flex items-center gap-2 pl-3 pr-1.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[10px] font-bold text-slate-700">
                         <span className="uppercase">{cat}</span>
@@ -819,7 +819,7 @@ export default function Settings({ onBack, onTabChange }: SettingsProps) {
 
                 <div className="grid grid-cols-2 gap-y-5 gap-x-4">
                   <div className="space-y-1.5">
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Pemilik Cloud</p>
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Pemilik Akun Cloud</p>
                     <p className="text-[11px] font-bold text-slate-700 truncate">{communityData?.name || 'Administrator RT 05'}</p>
                   </div>
                   <div className="space-y-1.5">

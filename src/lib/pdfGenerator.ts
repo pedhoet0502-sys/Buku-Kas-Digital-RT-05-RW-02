@@ -93,14 +93,14 @@ export const getMonthlyReportPdf = (transactions: any[], communityData?: any, pe
     doc.setFont(undefined, 'normal');
     
     // Date of signature
-    doc.text(`Dicetak di Jakarta, ${format(now, 'dd MMMM yyyy', { locale: id })}`, 190, finalY - 15, { align: 'right' });
+    doc.text(`Cilangkap, ${format(now, 'dd MMMM yyyy', { locale: id })}`, 190, finalY - 15, { align: 'right' });
 
     // Chairman
-    doc.text('Ketua RT,', 40, finalY);
+    doc.text('Ketua RT,', 40, finalY, { align: 'center' });
     doc.text(`( ${communityData?.chairman || '..........................'} )`, 40, finalY + 25, { align: 'center' });
     
     // Treasurer
-    doc.text('Bendahara,', 150, finalY);
+    doc.text('Bendahara,', 150, finalY, { align: 'center' });
     doc.text(`( ${communityData?.treasurer || '..........................'} )`, 150, finalY + 25, { align: 'center' });
   }
 

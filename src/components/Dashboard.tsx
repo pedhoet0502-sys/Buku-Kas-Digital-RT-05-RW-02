@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { formatCurrency } from '@/src/lib/utils';
-import { TrendingUp, TrendingDown, Wallet, Download, Eye, Calendar, Filter, ChevronDown, RotateCcw, Sliders } from 'lucide-react';
-import { generateMonthlyReport } from '@/src/lib/pdfGenerator';
-import ReportPreview from './ReportPreview';
+import { TrendingUp, TrendingDown, Wallet, Calendar, Filter, ChevronDown, RotateCcw, Sliders } from 'lucide-react';
+
+import { cn } from '../lib/utils';
 
 interface DashboardProps {
   transactions: any[];
   communityData: any;
+  isScrolling?: boolean;
+  onViewLaporan?: () => void;
 }
 
-export default function Dashboard({ transactions, communityData }: DashboardProps) {
-  const [showPreview, setShowPreview] = useState(false);
+export default function Dashboard({ transactions, communityData, isScrolling, onViewLaporan }: DashboardProps) {
   const [selectedMonth, setSelectedMonth] = useState<number | 'all'>('all');
   const [selectedYear, setSelectedYear] = useState<number | 'all'>('all');
 
@@ -75,7 +76,10 @@ export default function Dashboard({ transactions, communityData }: DashboardProp
   return (
     <div className="space-y-8 max-w-full mx-auto pb-32">
       {/* Filters - Simplified & Sticky */}
-      <div className="sticky top-[72px] md:top-[88px] z-30 bg-white/95 backdrop-blur-sm px-6 py-6 md:px-8 border-b border-gray-100 shadow-sm transition-all">
+      <div className={cn(
+        "sticky z-30 bg-white/95 backdrop-blur-sm px-6 py-6 md:px-8 border-b border-gray-100 shadow-sm transition-all duration-300 transform",
+        isScrolling ? "top-0 -translate-y-full opacity-0 pointer-events-none" : "top-[72px] md:top-[88px] translate-y-0 opacity-100"
+      )}>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 max-w-full mx-auto">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
@@ -92,28 +96,28 @@ export default function Dashboard({ transactions, communityData }: DashboardProp
               <select 
                 value={selectedMonth}
                 onChange={(e) => setSelectedMonth(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
-                className="pl-4 pr-10 py-2.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-900 appearance-none outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500/30 transition-all cursor-pointer min-w-[140px]"
+                className="pl-3.5 pr-6 py-2 bg-white border border-gray-200 rounded-xl text-xs font-medium text-gray-900 appearance-none outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500/30 transition-all cursor-pointer min-w-[105px]"
               >
                 <option value="all">Bulan</option>
                 {months.map((m, i) => (
                   <option key={m} value={i}>{m}</option>
                 ))}
               </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14} />
+              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={12} strokeWidth={1.5} />
             </div>
 
             <div className="relative">
               <select 
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
-                className="pl-4 pr-10 py-2.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-900 appearance-none outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500/30 transition-all cursor-pointer min-w-[110px]"
+                className="pl-3.5 pr-6 py-2 bg-white border border-gray-200 rounded-xl text-xs font-medium text-gray-900 appearance-none outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500/30 transition-all cursor-pointer min-w-[85px]"
               >
                 <option value="all">Tahun</option>
                 {years.map(y => (
                   <option key={y} value={y}>{y}</option>
                 ))}
               </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14} />
+              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={12} strokeWidth={1.5} />
             </div>
 
             <button 
@@ -134,7 +138,7 @@ export default function Dashboard({ transactions, communityData }: DashboardProp
       <div className="px-6 md:px-8 space-y-8">
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-6">
           <div className="p-4 bg-indigo-50 text-indigo-600 rounded-xl">
             <Wallet size={24} />
           </div>
@@ -151,11 +155,11 @@ export default function Dashboard({ transactions, communityData }: DashboardProp
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-6">
           <div className="p-4 bg-green-50 text-green-600 rounded-xl">
             <TrendingUp size={24} />
           </div>
-          <div>
+          <div className="flex-1">
             <p className="text-sm text-gray-500 font-medium">Pemasukan</p>
             <p className="text-2xl font-bold text-green-600">
               {formatCurrency(totalIncome)}
@@ -163,11 +167,11 @@ export default function Dashboard({ transactions, communityData }: DashboardProp
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-6">
           <div className="p-4 bg-red-50 text-red-600 rounded-xl">
             <TrendingDown size={24} />
           </div>
-          <div>
+          <div className="flex-1">
             <p className="text-sm text-gray-500 font-medium">Pengeluaran</p>
             <p className="text-2xl font-bold text-red-600">
               {formatCurrency(totalExpense)}
@@ -178,29 +182,16 @@ export default function Dashboard({ transactions, communityData }: DashboardProp
 
         {/* Chart Section */}
         <div className="bg-white p-6 md:p-8 rounded-[2.5rem] shadow-sm border border-gray-100">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-          <div>
-            <h3 className="text-lg font-bold text-gray-900">Grafik Saldo</h3>
-          </div>
-          <div className="flex flex-row gap-2 w-full sm:w-auto">
-            <button
-              onClick={() => setShowPreview(true)}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-xl font-bold text-sm hover:bg-gray-200 transition-all shadow-sm"
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-lg font-bold text-gray-900">Grafik Saldo</h3>
+          {onViewLaporan && (
+            <button 
+              onClick={onViewLaporan}
+              className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors flex items-center gap-1 active:scale-95 duration-150 cursor-pointer"
             >
-              <Eye size={18} />
-              <span className="whitespace-nowrap">Pratinjau</span>
+              Selengkapnya <span className="translate-y-[-0.5px] font-black font-sans">&gt;</span>
             </button>
-            <button
-              onClick={() => generateMonthlyReport(filteredTransactions, communityData, 
-                selectedMonth === 'all' || selectedYear === 'all' ? undefined : { month: selectedMonth, year: selectedYear },
-                previousBalance
-              )}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold text-sm hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100"
-            >
-              <Download size={18} />
-              <span className="whitespace-nowrap">Export PDF</span>
-            </button>
-          </div>
+          )}
         </div>
         <div className="h-[300px] w-full">
           {chartData.length > 0 ? (
@@ -250,16 +241,6 @@ export default function Dashboard({ transactions, communityData }: DashboardProp
         </div>
       </div>
     </div>
-
-      {showPreview && (
-        <ReportPreview 
-          transactions={filteredTransactions} 
-          communityData={communityData}
-          period={selectedMonth === 'all' || selectedYear === 'all' ? undefined : { month: selectedMonth, year: selectedYear }}
-          initialBalance={previousBalance}
-          onClose={() => setShowPreview(false)} 
-        />
-      )}
-    </div>
+  </div>
   );
 }

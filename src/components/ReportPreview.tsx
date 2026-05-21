@@ -151,17 +151,22 @@ export default function ReportPreview({ transactions, communityData, period, ini
               </div>
 
               {/* Signatures */}
-              <div className="mt-16 grid grid-cols-2 gap-20">
-                <div className="text-center">
-                  <p className="mb-20">Ketua RT,</p>
-                  <div className="border-b border-slate-800 w-48 mx-auto font-bold uppercase">
-                    {communityData?.chairman || '..........................'}
-                  </div>
+              <div className="mt-12">
+                <div className="text-right mb-12 text-sm font-medium text-slate-700">
+                  Cilangkap, {format(new Date(), 'dd MMMM yyyy', { locale: id })}
                 </div>
-                <div className="text-center">
-                  <p className="mb-20">Bendahara,</p>
-                  <div className="border-b border-slate-800 w-48 mx-auto font-bold uppercase">
-                    {communityData?.treasurer || '..........................'}
+                <div className="grid grid-cols-2 gap-10">
+                  <div className="text-center">
+                    <p className="mb-24 font-bold text-slate-800">Ketua RT,</p>
+                    <div className="border-b border-slate-300 w-56 mx-auto font-black uppercase text-slate-900 tracking-wide pb-1">
+                      {communityData?.chairman || '..........................'}
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <p className="mb-24 font-bold text-slate-800">Bendahara,</p>
+                    <div className="border-b border-slate-300 w-56 mx-auto font-black uppercase text-slate-900 tracking-wide pb-1">
+                      {communityData?.treasurer || '..........................'}
+                    </div>
                   </div>
                 </div>
               </div>

@@ -36,9 +36,20 @@ interface TransactionListProps {
   currentUserTitle?: string | null;
   onTabChange?: (tab: 'dashboard' | 'transactions' | 'settings') => void;
   onAdd?: () => void;
+  isScrolling?: boolean;
 }
 
-export default function TransactionList({ transactions, customCategories, currentCommunityId, currentRole, memberTitles, currentUserTitle, onTabChange, onAdd }: TransactionListProps) {
+export default function TransactionList({ 
+  transactions, 
+  customCategories, 
+  currentCommunityId, 
+  currentRole, 
+  memberTitles, 
+  currentUserTitle, 
+  onTabChange, 
+  onAdd,
+  isScrolling
+}: TransactionListProps) {
   const [selectedTransaction, setSelectedTransaction] = useState<any | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterMonth, setFilterMonth] = useState<string>('');
@@ -138,7 +149,10 @@ export default function TransactionList({ transactions, customCategories, curren
         <div className="bg-slate-50/10 pb-40">
           <div className="max-w-full mx-auto">
             {/* Control Panel - Sticky and Below Global Header */}
-            <div className="sticky top-[72px] md:top-[88px] z-30 px-6 py-6 border-b border-gray-100 flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8 bg-white/95 backdrop-blur-md shadow-sm transition-all">
+            <div className={cn(
+              "sticky z-30 px-6 py-6 border-b border-gray-100 flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8 bg-white/95 backdrop-blur-md shadow-sm transition-all duration-300 transform",
+              isScrolling ? "top-0 -translate-y-full opacity-0 pointer-events-none" : "top-[72px] md:top-[88px] translate-y-0 opacity-100"
+            )}>
               <div className="flex items-center justify-between w-full lg:w-auto">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
@@ -149,20 +163,10 @@ export default function TransactionList({ transactions, customCategories, curren
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Cari dan urutkan data</p>
                   </div>
                 </div>
-                
-                {currentRole === 'admin' && (
-                  <button 
-                    onClick={onAdd}
-                    className="lg:hidden w-11 h-11 bg-blue-600 text-white rounded-xl flex items-center justify-center shadow-lg active:scale-95"
-                  >
-                    <Plus size={24} />
-                  </button>
-                )}
               </div>
               
               <div className="flex flex-col lg:flex-row lg:items-end gap-4 w-full lg:w-auto">
-                <div className="space-y-2 flex-1 lg:flex-none">
-                  <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Pencarian Riwayat Transaksi</h2>
+                <div className="flex-1 lg:flex-none">
                   <div className="flex items-center gap-2">
                     <div className="relative group flex-1 min-w-[240px]">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-600 transition-colors" size={18} />
@@ -179,7 +183,7 @@ export default function TransactionList({ transactions, customCategories, curren
                       <button 
                         onClick={() => setShowFilters(!showFilters)}
                         className={cn(
-                          "p-3 rounded-xl transition-all flex items-center justify-center border",
+                          "w-12 h-12 rounded-xl transition-all flex items-center justify-center border shrink-0",
                           showFilters || isFilterActive 
                             ? "bg-blue-50 border-blue-200 text-blue-600" 
                             : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
@@ -193,7 +197,7 @@ export default function TransactionList({ transactions, customCategories, curren
                         onClick={handleResetAll}
                         disabled={isRefreshing}
                         className={cn(
-                          "p-3 rounded-xl transition-all flex items-center justify-center bg-gray-50 border border-gray-200",
+                          "w-12 h-12 rounded-xl transition-all flex items-center justify-center border shrink-0 bg-gray-50 border-gray-200",
                           isRefreshing ? "text-blue-600" : "text-gray-400 hover:text-gray-600"
                         )}
                         title="Reset Filter"
@@ -379,10 +383,9 @@ export default function TransactionList({ transactions, customCategories, curren
                                         {t.createdAt ? format(new Date(t.createdAt?.toDate?.() || t.createdAt), 'HH:mm') : '--:--'}
                                       </span>
                                     </div>
-                                    
-                                    <ChevronRight size={14} className="text-slate-300 ml-auto group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
                                   </div>
                                 </div>
+                                <ChevronRight size={14} className="text-slate-300 group-hover:text-blue-500 group-hover:translate-x-1 transition-all shrink-0" />
                               </motion.div>
                             ))}
                           </AnimatePresence>
