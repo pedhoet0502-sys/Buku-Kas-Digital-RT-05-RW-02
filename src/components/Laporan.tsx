@@ -77,8 +77,8 @@ export default function Laporan({ transactions, communityData, customCategories 
 
   return (
     <div className="space-y-8 max-w-full mx-auto pb-32 animate-in fade-in duration-300">
-      {/* Search and Period filters */}
-      <div className="bg-white/95 backdrop-blur-sm px-6 py-6 md:px-8 border-b border-gray-100 shadow-sm">
+      {/* Search and Period filters - Sticky under viewport when global header scrolls up */}
+      <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-md px-6 py-6 md:px-8 border-b border-gray-100 shadow-[0_4px_20px_rgba(15,23,42,0.02)]">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 max-w-full mx-auto">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
@@ -215,9 +215,9 @@ export default function Laporan({ transactions, communityData, customCategories 
 
                   return (
                     <div key={cat.name} className="flex flex-col gap-1">
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs font-bold text-slate-700">{cat.name}</span>
-                        <div className="flex items-center gap-1.5">
+                      <div className="flex justify-between items-center gap-4">
+                        <span className="text-xs font-bold text-slate-700 min-w-0 flex-1 truncate">{cat.name}</span>
+                        <div className="flex items-center gap-1.5 shrink-0">
                           <span className={cn(
                             "text-xs font-bold",
                             cat.type === 'income' ? 'text-green-600' : 'text-red-600'

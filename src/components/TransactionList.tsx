@@ -148,11 +148,8 @@ export default function TransactionList({
       <div className="flex flex-col animate-in fade-in duration-500">
         <div className="bg-slate-50/10 pb-40">
           <div className="max-w-full mx-auto">
-            {/* Control Panel - Sticky and Below Global Header */}
-            <div className={cn(
-              "sticky z-30 px-6 py-6 border-b border-gray-100 flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8 bg-white/95 backdrop-blur-md shadow-sm transition-all duration-300 transform",
-              isScrolling ? "top-0 -translate-y-full opacity-0 pointer-events-none" : "top-[72px] md:top-[88px] translate-y-0 opacity-100"
-            )}>
+            {/* Control Panel - Sticky under viewport when global header scrolls up */}
+            <div className="sticky top-0 z-30 px-6 py-6 border-b border-gray-100 flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8 bg-white/95 backdrop-blur-md shadow-[0_4px_20px_rgba(15,23,42,0.02)]">
               <div className="flex items-center justify-between w-full lg:w-auto">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
@@ -339,8 +336,8 @@ export default function TransactionList({
                                 
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-start justify-between gap-4 mb-1">
-                                    <div className="min-w-0">
-                                      <h4 className="font-bold text-slate-800 text-[15px] uppercase tracking-tight group-hover:text-blue-600 transition-colors">
+                                    <div className="min-w-0 flex-1">
+                                      <h4 className="font-bold text-slate-800 text-[15px] uppercase tracking-tight group-hover:text-blue-600 transition-colors truncate">
                                         {t.category}
                                       </h4>
                                       {t.description && (
@@ -350,9 +347,9 @@ export default function TransactionList({
                                       )}
                                     </div>
                                     
-                                    <div className="text-right shrink-0">
+                                    <div className="text-right shrink-0 min-w-fit ml-4">
                                       <p className={cn(
-                                        "font-black text-lg leading-none tabular-nums tracking-tight",
+                                        "font-black text-lg leading-none tabular-nums tracking-tight whitespace-nowrap",
                                         t.type === 'income' ? "text-emerald-600" : "text-rose-600"
                                       )}>
                                         {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount)}

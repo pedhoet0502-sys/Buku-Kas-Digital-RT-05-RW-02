@@ -6,6 +6,11 @@
 }
 
 @layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    -moz-text-size-adjust: 100%;
+  }
   body {
     @apply font-sans antialiased text-gray-900 bg-gray-50;
   }

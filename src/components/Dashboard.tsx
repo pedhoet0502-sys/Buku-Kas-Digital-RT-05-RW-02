@@ -75,11 +75,8 @@ export default function Dashboard({ transactions, communityData, isScrolling, on
 
   return (
     <div className="space-y-8 max-w-full mx-auto pb-32">
-      {/* Filters - Simplified & Sticky */}
-      <div className={cn(
-        "sticky z-30 bg-white/95 backdrop-blur-sm px-6 py-6 md:px-8 border-b border-gray-100 shadow-sm transition-all duration-300 transform",
-        isScrolling ? "top-0 -translate-y-full opacity-0 pointer-events-none" : "top-[72px] md:top-[88px] translate-y-0 opacity-100"
-      )}>
+      {/* Filters - Sticky under viewport when global header scrolls up */}
+      <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-md px-6 py-6 md:px-8 border-b border-gray-100 shadow-[0_4px_20px_rgba(15,23,42,0.02)]">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 max-w-full mx-auto">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">

@@ -397,15 +397,12 @@ export default function App() {
 
   return (
     <div 
-      className="min-h-screen bg-gray-50 pb-24 md:pb-8"
+      className="min-h-screen bg-gray-50 pb-28"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
       {/* Header */}
-      <header className={cn(
-        "bg-white/80 backdrop-blur-xl border-b border-gray-100 sticky top-0 z-40 transition-all duration-300 transform",
-        isScrolling && "-translate-y-full opacity-0 pointer-events-none"
-      )}>
+      <header className="bg-white border-b border-gray-100">
         <div className="mx-auto px-6 py-4 md:py-6 flex items-center justify-between max-w-full">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center shadow-sm">
@@ -541,11 +538,8 @@ export default function App() {
         </button>
       )} */}
 
-      {/* Bottom Navigation (Mobile Only) */}
-      <nav className={cn(
-        "fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-40 shadow-[0_-8px_30px_rgba(0,0,0,0.06)] transition-all duration-300 transform md:hidden h-[76px] pb-5 pt-2",
-        isScrolling && "translate-y-full opacity-0 pointer-events-none"
-      )}>
+      {/* Bottom Navigation (Sticky Fixed with Glassmorphism) */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t border-slate-100/90 z-40 shadow-[0_-8px_35px_rgba(15,23,42,0.06)] h-[76px] pb-5 pt-2">
         <div className="grid grid-cols-5 h-full items-center justify-items-center w-full max-w-lg mx-auto px-1">
           {/* Beranda */}
           <button
